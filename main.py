@@ -1,4 +1,5 @@
 import pygame
+from random import choices
 from settings import *
 from sprites import *
 
@@ -30,16 +31,45 @@ def createFires():
     for i in range(int(GRIDWIDTH)):
         for j in range(int(GRIDHEIGHT)):
             if layout[i][j] == 'F':
-                fire = Fire(i,j)
-                all_sprites.add(fire)
-                all_fires.add(fire)
+            	addFire(i,j)
 
+def addFire(i,j):
+	fire = Fire(i,j)
+	all_sprites.add(fire)
+	all_fires.add(fire)
+
+def propagateFire(layout):
+	spread    = [True, False] #either it spreads or not
+	propagate = [ALFA, 1-ALFA]
+	put_out   = [BETA, 1-BETA]  
+	row = [-1, 0, 0, 1]
+	col = [0, -1, 1, 0]
+
+	for fire in all_fires:
+		if (choices(spread, put_out)[0]):
+			layout[fire.x][fire.y] = 'O'
+			all_fires.remove(fire)
+			all_sprites.remove(fire)
+
+	new_fires = pygame.sprite.Group()
+	for fire in all_fires:
+		for i in range(len(row)):
+			x = fire.x + row[i]
+			y = fire.y + col[i]
+			if (layout[x][y] != 'W' and choices(spread, propagate)[0]): #and layout[x][y]!='A'. fogo para cima de um agente? agente em cima de agente? A no layout?
+				layout[x][y] = 'F'
+				new_fires.add(Fire(x,y))
+	for fire in new_fires:
+		all_sprites.add(fire)
+		all_fires.add(fire)
+
+	return layout
 
 
 # Main
 
 if __name__ == "__main__":
-    global SCREEN, CLOCK, layout, all_sprites, all_players, all_walls, all_fires
+    global SCREEN, CLOCK, layout, all_sprites, all_agents, all_walls, all_fires, ALFA
 
     pygame.init()
     pygame.display.set_caption("Evacuation Simulation")
@@ -52,52 +82,32 @@ if __name__ == "__main__":
     layout = get_layout()
     all_sprites = pygame.sprite.Group()
     all_walls   = pygame.sprite.Group()
-    all_players = pygame.sprite.Group()
+    all_agents  = pygame.sprite.Group()
     all_fires   = pygame.sprite.Group()
     createWalls()
     createFires()
-    #destination = [8, 19]
+
     for i in range(NUM_AGENTS):
-        player = Agent(1,1, all_walls, layout, all_fires)
+        player = Agent(i+1, (1,1), 3, all_walls, layout, all_fires)
         all_sprites.add(player)
-        all_players.add(player)
-        #plan = player.bfs([player.x, player.y], destination)
-        #print(plan)
-    
+        all_agents.add(player)
 
     # Main cycle
-    run = True
-    i = 1
-    while run:
+    while True:
         CLOCK.tick(FPS)
 
-        # Process events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            '''if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.move(dx = -1)
-                if event.key == pygame.K_RIGHT:
-                    player.move(dx = +1)
-                if event.key == pygame.K_UP:
-                    player.move(dy = -1)
-                if event.key == pygame.K_DOWN:
-                    player.move(dy = +1)'''
-        
-        #player.move(dx = (plan[i][0] - player.x), dy = (plan[i][1] - player.y))        
+        layout = propagateFire(layout)
 
-        # Update
-        all_sprites.update(i)
+        for agent in all_agents:
+        	agent.percept(layout) #hack
+        	agent.plan_()
 
-        
-        # Render
+        all_sprites.update()
         SCREEN.fill(WHITE)
         all_sprites.draw(SCREEN)
         draw_grid()
         pygame.display.flip()
 
-        i += 1
 
     pygame.quit()
 

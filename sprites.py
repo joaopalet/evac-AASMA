@@ -3,26 +3,25 @@
 import pygame
 from settings import *
 import random
+import numpy as np
 
 
 
 class Agent(pygame.sprite.Sprite):
-    def __init__(self, x, y, walls, layout, fires):
+    def __init__(self, identifier, health, pos, walls, layout, fires):
         pygame.sprite.Sprite.__init__(self)
+        self.id = identifier
+        self.hp = health
         self.image = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(RED)
         self.rect = self.image.get_rect()
-        self.walls = walls
+
+        self.walls  = walls
         self.layout = layout
         self.fires  = fires
+        self.plan   = []
+        self.dest   = [ [index, row.index('E')] for index, row in enumerate(self.layout) if 'E' in row][0]
 
-        for i in range(len(self.layout)):
-            for j in range(len(self.layout[i])):
-                if self.layout[i][j] == 'E':
-                    self.dest =  [i,j]
-        #print(self.dest)
-        #self.x = x
-        #self.y = y
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout))
 
@@ -31,34 +30,51 @@ class Agent(pygame.sprite.Sprite):
                 self.x = random.randrange(0, len(self.layout))
                 self.y = random.randrange(0, len(self.layout))
         
-        self.plan = self.bfs([self.x, self.y], self.dest)
-        #print('plan: ', self.plan)
-
         
     def move(self, dx=0, dy=0):
-        if not self.collide_with_walls(dx, dy):
-            self.x += dx
-            self.y += dy
+        self.x += dx
+        self.y += dy
     
-    def collide_with_walls(self, dx=0, dy=0):
-        for wall in self.walls:
-            if wall.x == self.x + dx and wall.y == self.y + dy:
-                return True
-        return False
-    
-    def update(self, i):
+    def update(self):
         self.rect.x = self.x * TILESIZE 
         self.rect.y = self.y * TILESIZE
         
-        if i < len(self.plan): self.move(dx = (self.plan[i][0] - self.x), dy = (self.plan[i][1] - self.y))
+        #if i < len(self.plan): self.move(dx = (self.plan[i][0] - self.x), dy = (self.plan[i][1] - self.y))
+        self.move(dx = (self.plan[0] - self.x), dy = (self.plan[1] - self.y))
 
-    def bfs(self, source, dest):        # [x,y] -> source | [x,y] -> destination
-        visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
-        queue = []
-        path = []
-        prev = []
+    #update my vision of the layout only in the range of (self.x +- RANGE, self.y +- RANGE)
+    def percept(self, layout):
+    	x0 = self.x-RANGE
+    	y0 = self.y-RANGE
+    	x1 = self.x+RANGE
+    	y1 = self.y+RANGE
+    	if (x0 < 0):
+    		x0 = 0
+    	if (y0 < 0):
+    		y0 = 0
+    	if (x1 > len(layout[0])-1):   #FIXME not sure
+    		x1 = len(layout[0])-1
+    	if (y1 > len(layout)-1):      #FIXME not sure
+    		y1 = len(layout)-1
+    	for i in range(x0, x1+1):
+    		for j in range(y0, y1+1):
+    			self.layout[i][j] = layout[i][j]
+
+    def plan_(self):
+    	self.plan = self.bfs()
+
+    def bfs(self):
+        source  = [self.x, self.y]
+        dest    = self.dest
+       	visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
+        queue   = []
+        path    = []
+        prev    = []
+
+        if (source == dest):
+        	return source
+
         queue.append(source)
-
         visited[source[0]][source[1]] = 1
         
         row = [-1, 0, 0, 1]
@@ -77,11 +93,7 @@ class Agent(pygame.sprite.Sprite):
                     visited[x][y] = 1
                     l = [x, y]
                     queue.append(l)
-
-                    p = []
-                    p.append(l)
-                    p.append(cur)
-                    prev.append(p)              # prev = [ [no, predecessor] ]
+                    prev.append([l, cur])       # prev = [ [no, predecessor] ]
 
         at = dest
         while at != source:
@@ -90,8 +102,9 @@ class Agent(pygame.sprite.Sprite):
                 if(at == prev[i][0]): at = prev[i][1]
         path.append(source)
         path.reverse()
-        return path
+        #return path
 
+        return path[1] #onde é q quero estar a seguir
 
 
 class Wall(pygame.sprite.Sprite):
