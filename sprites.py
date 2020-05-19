@@ -6,14 +6,15 @@ import random
 
 
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self, walls, layout):
+class Agent(pygame.sprite.Sprite):
+    def __init__(self, x, y, walls, layout, fires):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((TILESIZE, TILESIZE))
-        self.image.fill(YELLOW)
+        self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.walls = walls
         self.layout = layout
+        self.fires  = fires
 
         for i in range(len(self.layout)):
             for j in range(len(self.layout[i])):
@@ -57,7 +58,7 @@ class Player(pygame.sprite.Sprite):
         path = []
         prev = []
         queue.append(source)
-        
+
         visited[source[0]][source[1]] = 1
         
         row = [-1, 0, 0, 1]
@@ -72,15 +73,13 @@ class Player(pygame.sprite.Sprite):
                 y = cur[1] + col[i]
 
                 if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout)): continue
-                if(self.layout[x][y] != 'W' and visited[x][y] == 0):
+                if(self.layout[x][y] != 'W' and self.layout[x][y] != 'F' and visited[x][y] == 0):
                     visited[x][y] = 1
-                    list = []
-                    list.append(x)
-                    list.append(y)
-                    queue.append(list)
+                    l = [x, y]
+                    queue.append(l)
 
                     p = []
-                    p.append(list)
+                    p.append(l)
                     p.append(cur)
                     prev.append(p)              # prev = [ [no, predecessor] ]
 
@@ -99,7 +98,18 @@ class Wall(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = self.x * TILESIZE 
+        self.rect.y = self.y * TILESIZE
+
+class Fire(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((TILESIZE, TILESIZE))
+        self.image.fill(ORANGE)
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y

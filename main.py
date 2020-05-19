@@ -26,12 +26,20 @@ def createWalls():
                 all_sprites.add(wall)
                 all_walls.add(wall)
 
+def createFires():
+    for i in range(int(GRIDWIDTH)):
+        for j in range(int(GRIDHEIGHT)):
+            if layout[i][j] == 'F':
+                fire = Fire(i,j)
+                all_sprites.add(fire)
+                all_fires.add(fire)
+
 
 
 # Main
 
 if __name__ == "__main__":
-    global SCREEN, CLOCK, layout, all_sprites, all_players, all_walls
+    global SCREEN, CLOCK, layout, all_sprites, all_players, all_walls, all_fires
 
     pygame.init()
     pygame.display.set_caption("Evacuation Simulation")
@@ -40,20 +48,22 @@ if __name__ == "__main__":
     CLOCK = pygame.time.Clock()
     SCREEN.fill(BLACK)
 
-    # Create walls and agents
+    # Create agents
     layout = get_layout()
     all_sprites = pygame.sprite.Group()
-    all_walls = pygame.sprite.Group()
+    all_walls   = pygame.sprite.Group()
     all_players = pygame.sprite.Group()
+    all_fires   = pygame.sprite.Group()
     createWalls()
-
+    createFires()
     #destination = [8, 19]
     for i in range(NUM_AGENTS):
-        player = Player(all_walls, layout)
+        player = Agent(1,1, all_walls, layout, all_fires)
         all_sprites.add(player)
         all_players.add(player)
         #plan = player.bfs([player.x, player.y], destination)
         #print(plan)
+    
 
     # Main cycle
     run = True
