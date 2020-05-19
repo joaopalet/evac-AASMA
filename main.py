@@ -46,11 +46,14 @@ if __name__ == "__main__":
     all_walls = pygame.sprite.Group()
     all_players = pygame.sprite.Group()
     createWalls()
-    player = Player(1, 1, all_walls, layout)
-    all_sprites.add(player)
-    all_players.add(player)
-    plan = player.bfs([player.x, player.y], [8, 19])
-    print(plan)
+
+    #destination = [8, 19]
+    for i in range(NUM_AGENTS):
+        player = Player(all_walls, layout)
+        all_sprites.add(player)
+        all_players.add(player)
+        #plan = player.bfs([player.x, player.y], destination)
+        #print(plan)
 
     # Main cycle
     run = True
@@ -62,7 +65,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.KEYDOWN:
+            '''if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     player.move(dx = -1)
                 if event.key == pygame.K_RIGHT:
@@ -70,13 +73,14 @@ if __name__ == "__main__":
                 if event.key == pygame.K_UP:
                     player.move(dy = -1)
                 if event.key == pygame.K_DOWN:
-                    player.move(dy = +1)
+                    player.move(dy = +1)'''
         
-        player.move(dx = (plan[i][0] - player.x), dy = (plan[i][1] - player.y))        
+        #player.move(dx = (plan[i][0] - player.x), dy = (plan[i][1] - player.y))        
 
         # Update
-        all_sprites.update()
+        all_sprites.update(i)
 
+        
         # Render
         SCREEN.fill(WHITE)
         all_sprites.draw(SCREEN)

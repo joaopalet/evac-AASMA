@@ -11,4 +11,6 @@ WHITE = (220, 220, 220)
 RED = (250, 0, 0)
 YELLOW = (255, 255, 0)
 
-FPS = 5
+FPS = 10
+
+NUM_AGENTS = 10

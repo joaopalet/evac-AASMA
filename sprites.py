@@ -2,20 +2,38 @@
 
 import pygame
 from settings import *
+import random
 
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, walls, layout):
+    def __init__(self, walls, layout):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(YELLOW)
         self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
         self.walls = walls
         self.layout = layout
 
+        for i in range(len(self.layout)):
+            for j in range(len(self.layout[i])):
+                if self.layout[i][j] == 'E':
+                    self.dest =  [i,j]
+        #print(self.dest)
+        #self.x = x
+        #self.y = y
+        self.x = random.randrange(0, len(self.layout))
+        self.y = random.randrange(0, len(self.layout))
+
+        if (self.layout[self.x][self.y] == 'W'):
+            while(self.layout[self.x][self.y] == 'W'):
+                self.x = random.randrange(0, len(self.layout))
+                self.y = random.randrange(0, len(self.layout))
+        
+        self.plan = self.bfs([self.x, self.y], self.dest)
+        #print('plan: ', self.plan)
+
+        
     def move(self, dx=0, dy=0):
         if not self.collide_with_walls(dx, dy):
             self.x += dx
@@ -27,9 +45,11 @@ class Player(pygame.sprite.Sprite):
                 return True
         return False
     
-    def update(self):
+    def update(self, i):
         self.rect.x = self.x * TILESIZE 
         self.rect.y = self.y * TILESIZE
+        
+        if i < len(self.plan): self.move(dx = (self.plan[i][0] - self.x), dy = (self.plan[i][1] - self.y))
 
     def bfs(self, source, dest):        # [x,y] -> source | [x,y] -> destination
         visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
