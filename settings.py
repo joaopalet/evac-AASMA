@@ -13,10 +13,13 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 100, 0)
 BLUE = (0, 100, 150)
 
-FPS = 2
+FPS = 5
 
 NUM_AGENTS = 10
+HEALTH_POINTS = 100
+SMOKE_DMG = 20
+FIRE_DMG  = 50
 
-ALFA  = 0.2  #spreading rate of fire
-BETA  = 0.2  #rate at which the fire dies out
-RANGE = 2    #quantas casas consigo ver à minha volta 
+ALFA  = 0.5
+BETA  = 0.05
+RANGE = 1
