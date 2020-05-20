@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Agent(pygame.sprite.Sprite):
-    def __init__(self, identifier, health, pos, layout, risk):
+    def __init__(self, identifier, health, pos, layout, risk, exits):
         pygame.sprite.Sprite.__init__(self)
         self.id = identifier
         self.hp = health
@@ -17,9 +17,10 @@ class Agent(pygame.sprite.Sprite):
         self.image.fill(RED)
         self.rect = self.image.get_rect()
 
-        self.layout = layout
-        self.plan   = []
-        self.dest   = [ [index, row.index('E')] for index, row in enumerate(self.layout) if 'E' in row][0]
+        self.layout  = layout
+        self.plan    = []
+        self.exits   = exits
+        self.dest    = self.exits[0] #FIXME
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
@@ -34,35 +35,40 @@ class Agent(pygame.sprite.Sprite):
         self.y += dy
     
     def update(self):
-        self.move(dx = (self.plan[0] - self.x), dy = (self.plan[1] - self.y))
-        self.rect.x = self.x * TILESIZE 
-        self.rect.y = self.y * TILESIZE
-        
-        #if i < len(self.plan): self.move(dx = (self.plan[i][0] - self.x), dy = (self.plan[i][1] - self.y))
+        if (len(self.plan)>0): #nasty FIXME
+            self.move(dx = (self.plan[0][0] - self.x), dy = (self.plan[0][1] - self.y))
+            self.plan    = self.plan[1:]
+            self.rect.x  = self.x * TILESIZE 
+            self.rect.y  = self.y * TILESIZE
+
 
     #update my vision of the layout only in the range of (self.x +- RANGE, self.y +- RANGE)
     def percept(self, layout):
-    	x0 = self.x-RANGE
-    	y0 = self.y-RANGE 
-    	x1 = self.x+RANGE
-    	y1 = self.y+RANGE
-    	if (x0 < 0):
-    		x0 = 0
-    	if (y0 < 0):
-    		y0 = 0
-    	if (x1 > len(layout)-1):
-    		x1 = len(layout)-1
-    	if (y1 > len(layout[0])-1):
-    		y1 = len(layout[0])-1
-    	for i in range(x0, x1+1):
-    		for j in range(y0, y1+1):
-    			self.layout[i][j] = layout[i][j]
+        x0 = self.x-RANGE
+        y0 = self.y-RANGE 
+        x1 = self.x+RANGE
+        y1 = self.y+RANGE
+        new_belief = False
+        if (x0 < 0):
+            x0 = 0
+        if (y0 < 0):
+            y0 = 0
+        if (x1 > len(layout)-1):
+            x1 = len(layout)-1
+        if (y1 > len(layout[0])-1):
+            y1 = len(layout[0])-1
+        for i in range(x0, x1+1):
+            for j in range(y0, y1+1):
+                if (self.layout[i][j] != layout[i][j]):
+                    self.layout[i][j] = layout[i][j]
+                    new_belief = True
+        return new_belief
 
     def plan_(self):
     	self.plan = self.bfs()
 
     def panic(self):
-    	return [self.x, self.y]
+    	return [[self.x, self.y]]
 
     def bfs(self):
         source  = [self.x, self.y]
@@ -73,7 +79,7 @@ class Agent(pygame.sprite.Sprite):
         prev    = []
 
         if (source == dest):
-        	return source
+        	return [source]
 
         queue.append(source)
         visited[source[0]][source[1]] = 1
@@ -105,11 +111,8 @@ class Agent(pygame.sprite.Sprite):
             for i in range(len(prev)):
                 if(at == prev[i][0]): 
                 	at = prev[i][1]
-        path.append(source)
         path.reverse()
-        #return path
-
-        return path[1] #onde é q quero estar a seguir
+        return path
 
 
 class Wall(pygame.sprite.Sprite):
