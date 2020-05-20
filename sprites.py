@@ -133,3 +133,14 @@ class Fire(pygame.sprite.Sprite):
         self.y = y
         self.rect.x = self.x * TILESIZE 
         self.rect.y = self.y * TILESIZE
+
+class Smoke(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((TILESIZE, TILESIZE))
+        self.image.fill(GREY)
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = self.x * TILESIZE 
+        self.rect.y = self.y * TILESIZE
