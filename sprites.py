@@ -11,7 +11,7 @@ class Agent(pygame.sprite.Sprite):
     def __init__(self, identifier, health, pos, layout, risk, exits):
         pygame.sprite.Sprite.__init__(self)
         self.id = identifier
-        self.hp = health
+        self.h = health
         self.risk = risk
         self.image = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(RED)
@@ -29,6 +29,22 @@ class Agent(pygame.sprite.Sprite):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
         
+    ############## AUXILIARY FUCNTIONS#############
+    def getPosition(self):
+        return [self.x, self.y]
+    
+    def getID(self):
+        return self.id
+    
+    def getHealth(self):
+        return self.h
+    
+    def setHealth(self, new_health):
+        self.h = new_health
+
+    def setColor(self, color):
+        self.image.fill(color)
+    ##############################################
         
     def move(self, dx=0, dy=0):
         self.x += dx
@@ -72,13 +88,14 @@ class Agent(pygame.sprite.Sprite):
 
     def bfs(self):
         source  = [self.x, self.y]
-        dest    = self.dest
+        dests    = self.exits
        	visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
         queue   = []
         path    = []
         prev    = []
+        my_dest = []
 
-        if (source == dest):
+        if (source in dests):
         	return [source]
 
         queue.append(source)
@@ -89,23 +106,34 @@ class Agent(pygame.sprite.Sprite):
         
         while (len(queue) > 0):
             cur = queue.pop(0)
-            if(cur == dest): break
+            if(cur in dests): 
+                my_dest = cur
+                break
+
+            # shuffle visiting order of the neighbours
+            combined = list(zip(row, col))
+            random.shuffle(combined)
+            row, col = zip(*combined)
 
             for i in range(len(row)):
                 x = cur[0] + row[i]
                 y = cur[1] + col[i]
 
-                if (x < 0 or y < 0 or x > len(self.layout) or y > len(self.layout[0])): continue
+                if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout[0])): continue
                 if(self.layout[x][y] != 'W' and self.layout[x][y] != 'F' and visited[x][y] == 0):
                     visited[x][y] = 1
                     l = [x, y]
                     queue.append(l)
                     prev.append([l, cur])       # prev = [ [no, predecessor] ]
 
-        if (not visited[dest[0]][dest[1]]):
-        	return self.panic()
+        panic = True
+        for dest in dests:
+            if visited[dest[0]][dest[1]]:
+                panic = False
+        if panic or self.h <= 0:        #FIXME
+            return self.panic()
 
-        at = dest
+        at = my_dest
         while at != source:
             path.append(at)
             for i in range(len(prev)):
