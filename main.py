@@ -135,9 +135,9 @@ def draw():
 	all_fires.draw(SCREEN)
 	all_agents.draw(SCREEN)
 	s = 'Saved Agents: ' + str(len(agents_saved))
-	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT+10)
+	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT)
 	s = 'Dead Agents: ' + str(len(agents_dead))
-	drawText(SCREEN, s, 34, 2*WIDTH/3, HEIGHT+10)
+	drawText(SCREEN, s, 34, 2*WIDTH/3, HEIGHT)
 	drawGrid()
 	pygame.display.flip()
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
 	pygame.init()
 	pygame.display.set_caption("Evacuation Simulation")
-	SCREEN = pygame.display.set_mode((WIDTH, HEIGHT+50))
+	SCREEN = pygame.display.set_mode((WIDTH, HEIGHT+40))
 	CLOCK = pygame.time.Clock()
 	SCREEN.fill(BLACK)
 
@@ -217,26 +217,3 @@ if __name__ == "__main__":
 		i+=1
 
 	pygame.quit()
-
-
-
-# W W W W W W W W W W W W W W W W W W W W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W W O W W W O W W W O W W O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O E
-# W O O O O W W O W W W W W O O W O O O W
-# W O O O O W W O W W W W W O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W W W O W W W O W W W O W O O W O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W W W W W W W W W W W W W W W W W W W W

@@ -1,10 +1,10 @@
 # Sprites
 
 import pygame
-from settings import *
 import random
 from random import choices
 import numpy as np
+from settings import *
 from auxiliary import *
 
 
