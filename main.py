@@ -191,9 +191,9 @@ if __name__ == "__main__":
 				if (i==1 or agent.percept(layout)):
 					agent.plan_()
 
-			if (i%2==0):
+			if (i%1==0):
 				layout = propagateFire(layout)
-			if (i%2==0):
+			if (i%1==0):
 				layout = propagateSmoke(layout)
 
 			all_sprites.update()
