@@ -80,7 +80,6 @@ Cada célula em fogo faz fumo numa célula adjacente aleatória com probabilidad
 """
 def propagateFire(layout):
 	spread    = [True, False] #either it spreads or not
-	wind 	  = [0.4, 0.3, 0.2, 0.1] #Norte Sul Este Oeste
 	propagate = [ALFA,  1-ALFA]
 	put_out   = [BETA,  1-BETA]
 	smoke     = [SMOKE, 1-SMOKE]
@@ -115,6 +114,7 @@ def propagateFire(layout):
 
 def propagateSmoke(layout):
 	spread = [True, False]   #either it spreads or not
+	wind   = [0.4, 0.3, 0.2, 0.1] #Norte Sul Este Oeste
 	smk    = [SMOKE, 1-SMOKE]
 	row    = [-1, 0, 0, 1]
 	col    = [0, -1, 1, 0]
