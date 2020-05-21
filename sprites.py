@@ -11,7 +11,7 @@ class Agent(pygame.sprite.Sprite):
     def __init__(self, identifier, health, pos, layout, risk, exits):
         pygame.sprite.Sprite.__init__(self)
         self.id = identifier
-        self.hp = health
+        self.h = health
         self.risk = risk
         self.image = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(RED)
@@ -29,6 +29,22 @@ class Agent(pygame.sprite.Sprite):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
         
+    ############## AUXILIARY FUCNTIONS#############
+    def getPosition(self):
+        return [self.x, self.y]
+    
+    def getID(self):
+        return self.id
+    
+    def getHealth(self):
+        return self.h
+    
+    def setHealth(self, new_health):
+        self.h = new_health
+
+    def setColor(self, color):
+        self.image.fill(color)
+    ##############################################
         
     def move(self, dx=0, dy=0):
         self.x += dx
@@ -102,7 +118,7 @@ class Agent(pygame.sprite.Sprite):
                     queue.append(l)
                     prev.append([l, cur])       # prev = [ [no, predecessor] ]
 
-        if (not visited[dest[0]][dest[1]]):
+        if (not visited[dest[0]][dest[1]] or self.h <= 0):
         	return self.panic()
 
         at = dest
