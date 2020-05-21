@@ -9,7 +9,7 @@ from auxiliary import *
 
 
 class Agent(pygame.sprite.Sprite):
-    def __init__(self, identifier, health, pos, layout, risk, exits):
+    def __init__(self, identifier, health, layout, risk, exits):
         pygame.sprite.Sprite.__init__(self)
         self.image  = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(RED)
@@ -29,7 +29,7 @@ class Agent(pygame.sprite.Sprite):
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
 
-        while(self.layout[self.x][self.y] == 'W'):
+        while(isWall(self.layout,self.x,self.y)):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
 
@@ -38,6 +38,9 @@ class Agent(pygame.sprite.Sprite):
     
     def getID(self):
         return self.id
+    
+    def getLayout(self):
+        return self.layout
     
     def getHealth(self):
         return self.health
@@ -51,7 +54,8 @@ class Agent(pygame.sprite.Sprite):
     def move(self, dx=0, dy=0):
         self.x += dx
         self.y += dy
-    
+
+
     def update(self):
         if (self.health>0):
             if (len(self.plan)>0): #nasty FIXME
@@ -60,8 +64,14 @@ class Agent(pygame.sprite.Sprite):
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE
 
-    def communicate(self):
-        pass
+    #ele só pode ficar em perigo de duas maneiras. ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
+    def receiveMessage(self, message):
+        for i in range(len(message)):
+            for j in range(len(message[i])):
+                if (self.layout[i][j] != message[i][j]): #and (isFire(message,i,j) or isSmoke(message,i,j))):
+                    self.danger       = True
+                    self.reconsider   = True
+                    self.layout[i][j] = message[i][j]
 
     def percept(self, layout):
         x0 = self.x-RANGE
@@ -107,7 +117,7 @@ class Agent(pygame.sprite.Sprite):
     def panic(self):  #reactive agent logic
         row = [-1, 0, 0, 1]
         col = [0, -1, 1, 0]
-        for i in range(len(row)):  ##FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
+        for i in range(len(row)):  #REFACTOR for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
             x = self.x + row[i]
             y = self.y + col[i]
             if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y)):

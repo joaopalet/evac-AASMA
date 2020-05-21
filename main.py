@@ -99,7 +99,7 @@ def propagateFire(layout):
 	return layout
 
 def propagateSmoke(layout):
-	spread = [True, False]   #either it spreads or not
+	spread = [True, False]        #either it spreads or not
 	wind   = [0.4, 0.3, 0.2, 0.1] #Norte Sul Este Oeste
 	smk    = [SMOKE, 1-SMOKE]
 	row    = [-1, 0, 0, 1]
@@ -148,9 +148,18 @@ def drawText(surf, text, size, x, y):
 	text_surface = font.render(text, True, WHITE, BLACK)
 	text_rect = text_surface.get_rect()
 	text_rect.midtop = (x,y)
-
 	surf.blit(text_surface, text_rect)
 
+def assertInRange(speaker, listener):
+	x = abs(speaker.x - listener.x)<=VOLUME or abs(speaker.y - listener.y)<=VOLUME
+	print(speaker.x,speaker.y, " ", listener.x, listener.y, x)
+	return x
+
+def communicate(speaker):
+	for listener in all_agents:
+		if (speaker.getID() == listener.getID()): continue
+		if assertInRange(speaker, listener):
+			listener.receiveMessage(speaker.getLayout())
 # Main
 if __name__ == "__main__":
 	global SCREEN, CLOCK, layout, all_sprites, all_agents, all_walls, all_fires, all_smokes, exits
@@ -173,7 +182,7 @@ if __name__ == "__main__":
 	createWalls()
 
 	for i in range(NUM_AGENTS):
-		player = Agent(i+1, HEALTH_POINTS, (1,1), deepcopy(layout), 1, exits)
+		player = Agent(i+1, HEALTH_POINTS, deepcopy(layout), 1, exits)
 		all_sprites.add(player)
 		all_agents.add(player)
 
@@ -202,10 +211,10 @@ if __name__ == "__main__":
 		if not pause:
 
 			for agent in all_agents:
-				agent.percept(layout)      # fica igual
-				agent.communicate()        # this.agent envia para todos os outros agentes em RANGE a sua visao do mundo e o seu estado
+				agent.percept(layout)
+				#communicate(agent)
 			for agent in all_agents:
-				agent.plan_()              # plan according to me beliefs
+				agent.plan_()
 				updateHealth(agent)
 
 			if (i%2==0): layout = propagateFire(layout)
