@@ -1,46 +1,38 @@
 import pygame
+from auxiliary import *
 from random import choices
 from settings import *
 from sprites import *
 from copy import deepcopy
 
 
-# Predicates
-
-def isFire(i, j):
-	return layout[i][j] == 'F'
-
-def isSmoke(i, j):
-	return layout[i][j] == 'S'
-
-def isWall(i, j):
-	return layout[i][j] == 'W'
-
-def isExit(i,j):
-	return layout[i][j] == 'E'
-
-
-# Auxiliary Functions
-
-def getExitsPos():
-	return [ [index, row.index('E')] for index, row in enumerate(layout) if 'E' in row]
-
-def draw_grid():
+def drawGrid():
     for x in range(0, WIDTH, TILESIZE):
         pygame.draw.line(SCREEN, BLACK, (x, 0), (x, HEIGHT))
     for y in range(0, HEIGHT, TILESIZE):
         pygame.draw.line(SCREEN, BLACK, (0, y), (WIDTH, y))
 
-def get_layout():
-    f = open('maze2.txt', 'r').read()
-    p = []
-    p = [item.split() for item in f.split('\n')[:-1]]
-    return p
+def updateHealth(agent):
+    pos = agent.getPosition()
+    id  = agent.getID()
+    if (isExit(layout,pos[0], pos[1]) and id not in agents_saved):
+        agents_saved.append(id)
+    if(agent.getHealth() > 0):
+        if (isSmoke(layout,pos[0], pos[1])): 
+            new_health = agent.getHealth() - SMOKE_DMG
+            agent.setHealth(new_health)
+        if (isFire(layout,pos[0], pos[1])): 
+            new_health = agent.getHealth() - FIRE_DMG
+            agent.setHealth(new_health)
+    if(agent.getHealth() <= 0):
+        agent.setColor(BLACK)
+        if (id not in agents_dead):
+            agents_dead.append(id)
 
 def createWalls():
     for i in range(int(GRIDWIDTH)):
         for j in range(int(GRIDHEIGHT)):
-            if (isWall(i, j)):
+            if (isWall(layout,i,j)):
                 wall = Wall(i,j)
                 all_sprites.add(wall)
                 all_walls.add(wall)
@@ -48,16 +40,10 @@ def createWalls():
 def createFires():
 	x = random.randrange(0, len(layout))
 	y = random.randrange(0, len(layout[0]))
-	while(isWall(x,y)):
+	while(isWall(layout,x,y)):
 		x = random.randrange(0, len(layout))
 		y = random.randrange(0, len(layout[0]))
 	addFire(x,y)
-	#x = random.randrange(0, len(layout))
-	#y = random.randrange(0, len(layout[0]))
-	#while(isWall(x,y)):
-	#	x = random.randrange(0, len(layout))
-	#	y = random.randrange(0, len(layout[0]))
-	#addFire(x,y)
 
 def addFire(i,j):
 	#assert(i>0 and i<len(layout)-1 and j>0 and j<len(layout[0])-1)
@@ -95,14 +81,14 @@ def propagateFire(layout):
 
 	new_fires = []
 	for fire in all_fires:
-		i = random.randrange(0, 4)
+		i = random.randrange(0, 4)  #FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
 		x = fire.x + row[i]
 		y = fire.y + col[i]
 		propagate_ = propagate
-		if (isSmoke(x, y)): #aumenta a probabilidade de propagar o fogo para a casa (x,y)
+		if (isSmoke(layout,x, y)): #aumenta a probabilidade de propagar o fogo para a casa (x,y)
 			propagate_[0] += (1-propagate_[1])/2
 			propagate_[1] = 1 - propagate_[0]
-		if (choices(spread, propagate_)[0] and not isWall(x, y) and not isFire(x, y) and not isExit(x, y)):
+		if (choices(spread, propagate_)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isExit(layout,x, y)):
 			#if (isSmoke(layout,x,y)):
 			#	all_smokes.remove()
 			new_fires.append([x,y])
@@ -124,34 +110,46 @@ def propagateSmoke(layout):
 		i = random.randrange(0, 4)
 		x = fire.x + row[i]
 		y = fire.y + col[i]
-		if (choices(spread, smk)[0] and not isWall(x, y) and not isFire(x, y) and not isSmoke(x, y) and not isExit(x, y)):
+		if (choices(spread, smk)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isSmoke(layout,x, y) and not isExit(layout,x, y)):
 			addSmoke(x, y)
 
 	for smoke in all_smokes:
 		x = smoke.x
 		y = smoke.y
 		a = choices(spread, smk)[0]
-		if (a and not isWall(x+row[0], y+col[0]) and not isFire(x+row[0], y+col[0]) and not isSmoke(x+row[0], y+col[0]) and not isExit(x+row[0], y+col[0])):
+		if (a and not isWall(layout,x+row[0], y+col[0]) and not isFire(layout,x+row[0], y+col[0]) and not isSmoke(layout,x+row[0], y+col[0]) and not isExit(layout,x+row[0], y+col[0])):
 			addSmoke(x+row[0], y+col[0])
-		if (a and not isWall(x+row[1], y+col[1]) and not isFire(x+row[1], y+col[1]) and not isSmoke(x+row[1], y+col[1]) and not isExit(x+row[1], y+col[1])):
+		if (a and not isWall(layout,x+row[1], y+col[1]) and not isFire(layout,x+row[1], y+col[1]) and not isSmoke(layout,x+row[1], y+col[1]) and not isExit(layout,x+row[1], y+col[1])):
 			addSmoke(x+row[1], y+col[1])
-		if (a and not isWall(x+row[2], y+col[2]) and not isFire(x+row[2], y+col[2]) and not isSmoke(x+row[2], y+col[2]) and not isExit(x+row[2], y+col[2])):
+		if (a and not isWall(layout,x+row[2], y+col[2]) and not isFire(layout,x+row[2], y+col[2]) and not isSmoke(layout,x+row[2], y+col[2]) and not isExit(layout,x+row[2], y+col[2])):
 			addSmoke(x+row[2], y+col[2])
-		if (a and not isWall(x+row[3], y+col[3]) and not isFire(x+row[3], y+col[3]) and not isSmoke(x+row[3], y+col[3]) and not isExit(x+row[3], y+col[3])):
+		if (a and not isWall(layout,x+row[3], y+col[3]) and not isFire(layout,x+row[3], y+col[3]) and not isSmoke(layout,x+row[3], y+col[3]) and not isExit(layout,x+row[3], y+col[3])):
 			addSmoke(x+row[3], y+col[3])
 
 	return layout
 
+def draw():				
+	SCREEN.fill(WHITE)
+	all_walls.draw(SCREEN)
+	all_smokes.draw(SCREEN)
+	all_fires.draw(SCREEN)
+	all_agents.draw(SCREEN)
+	s = 'Saved Agents: ' + str(len(agents_saved))
+	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT+10)
+	s = 'Dead Agents: ' + str(len(agents_dead))
+	drawText(SCREEN, s, 34, 2*WIDTH/3, HEIGHT+10)
+	drawGrid()
+	pygame.display.flip()
 
 # Draw Text in screen
 font_name = pygame.font.match_font('arial')
-def draw_text(surf, text, size, x, y):
+def drawText(surf, text, size, x, y):
 	font = pygame.font.Font(font_name, size)
 	text_surface = font.render(text, True, WHITE, BLACK)
 	text_rect = text_surface.get_rect()
 	text_rect.midtop = (x,y)
-	surf.blit(text_surface, text_rect)
 
+	surf.blit(text_surface, text_rect)
 
 # Main
 if __name__ == "__main__":
@@ -164,8 +162,8 @@ if __name__ == "__main__":
 	SCREEN.fill(BLACK)
 
 	# Create agents
-	layout = get_layout()
-	exits  = getExitsPos()
+	layout = getLayout()
+	exits  = getExitsPos(layout)
 
 	all_sprites = pygame.sprite.Group()
 	all_walls   = pygame.sprite.Group()
@@ -181,66 +179,41 @@ if __name__ == "__main__":
 
 	createFires()
 	
-	pause = True
+	pause = False
 	run   = True
 	
 	i=1
 	agents_saved = []
 	agents_dead = []
+
 	# Main cycle
 	while run:
+		
 		CLOCK.tick(FPS)
+		
 		for event in pygame.event.get():
+
 			if event.type == pygame.QUIT:
 				run = False
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
 					pause = not pause
 
-		if pause:
+		if not pause:
+
 			for agent in all_agents:
-				if (i==1 or agent.percept(layout)):
-					agent.plan_()
-				
-				pos = agent.getPosition()
-				id = agent.getID()
-				#print(pos)
-				if (isExit(pos[0], pos[1]) and id not in agents_saved):
-					agents_saved.append(id)
-				#print('health: ', agent.getHealth())
-				if(agent.getHealth() > 0):
-					if (isSmoke(pos[0], pos[1])): 
-						new_health = agent.getHealth() - SMOKE_DMG
-						agent.setHealth(new_health)
-					if (isFire(pos[0], pos[1])): 
-						new_health = agent.getHealth() - FIRE_DMG
-						agent.setHealth(new_health)
-				if(agent.getHealth() <= 0):
-					agent.setColor((0,0,0))
-					if (id not in agents_dead):
-						agents_dead.append(id)
-					#print('AGENT DEAD')
-							
-			if (i%1==0):
-				layout = propagateFire(layout)
-			if (i%1==0):
-				layout = propagateSmoke(layout)
+				agent.percept(layout)      # fica igual
+				agent.communicate()        # this.agent envia para todos os outros agentes em RANGE a sua visao do mundo e o seu estado
+			for agent in all_agents:
+				agent.plan_()              # plan according to me beliefs
+				updateHealth(agent)
+
+			if (i%2==0): layout = propagateFire(layout)
+			if (i%1==0): layout = propagateSmoke(layout)
 
 			all_sprites.update()
-			SCREEN.fill(WHITE)
-			all_walls.draw(SCREEN)
-			all_smokes.draw(SCREEN)
-			all_fires.draw(SCREEN)
-			all_agents.draw(SCREEN)
+			draw()
 
-			s = 'Saved Agents: ' + str(len(agents_saved))
-			draw_text(SCREEN, s, 34, WIDTH/3, HEIGHT+10)
-
-			s = 'Dead Agents: ' + str(len(agents_dead))
-			draw_text(SCREEN, s, 34, 2*WIDTH/3, HEIGHT+10)
-
-			draw_grid()
-			pygame.display.flip()
 		i+=1
 
 	pygame.quit()
