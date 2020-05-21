@@ -88,13 +88,14 @@ class Agent(pygame.sprite.Sprite):
 
     def bfs(self):
         source  = [self.x, self.y]
-        dest    = self.dest
+        dests    = self.exits
        	visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
         queue   = []
         path    = []
         prev    = []
+        my_dest = []
 
-        if (source == dest):
+        if (source in dests):
         	return [source]
 
         queue.append(source)
@@ -105,23 +106,34 @@ class Agent(pygame.sprite.Sprite):
         
         while (len(queue) > 0):
             cur = queue.pop(0)
-            if(cur == dest): break
+            if(cur in dests): 
+                my_dest = cur
+                break
+
+            # shuffle visiting order of the neighbours
+            combined = list(zip(row, col))
+            random.shuffle(combined)
+            row, col = zip(*combined)
 
             for i in range(len(row)):
                 x = cur[0] + row[i]
                 y = cur[1] + col[i]
 
-                if (x < 0 or y < 0 or x > len(self.layout) or y > len(self.layout[0])): continue
+                if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout[0])): continue
                 if(self.layout[x][y] != 'W' and self.layout[x][y] != 'F' and visited[x][y] == 0):
                     visited[x][y] = 1
                     l = [x, y]
                     queue.append(l)
                     prev.append([l, cur])       # prev = [ [no, predecessor] ]
 
-        if (not visited[dest[0]][dest[1]] or self.h <= 0):
-        	return self.panic()
+        panic = True
+        for dest in dests:
+            if visited[dest[0]][dest[1]]:
+                panic = False
+        if panic or self.h <= 0:        #FIXME
+            return self.panic()
 
-        at = dest
+        at = my_dest
         while at != source:
             path.append(at)
             for i in range(len(prev)):

@@ -221,9 +221,9 @@ if __name__ == "__main__":
 						agents_dead.append(id)
 					#print('AGENT DEAD')
 							
-			if (i%2==0):
+			if (i%1==0):
 				layout = propagateFire(layout)
-			if (i%2==0):
+			if (i%1==0):
 				layout = propagateSmoke(layout)
 
 			all_sprites.update()
