@@ -17,6 +17,8 @@ def updateHealth(agent):
 	identifier  = agent.getID()
 	if (isExit(layout,pos[0], pos[1]) and identifier not in agents_saved):
 		agents_saved.append(identifier)
+		all_sprites.remove(agent)
+		all_agents.remove(agent)
 
 	if(agent.getHealth() > 0):
 		if (isSmoke(layout,pos[0], pos[1])): 
@@ -26,7 +28,7 @@ def updateHealth(agent):
 			new_health = agent.getHealth() - FIRE_DMG
 			agent.setHealth(new_health)
 
-	else:
+	if(agent.getHealth() <= 0):
 		agent.die()
 		agent.setColor(BLACK)
 		if (identifier not in agents_dead):
@@ -204,6 +206,9 @@ if __name__ == "__main__":
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
 					pause = not pause
+
+		if len(agents_saved) + len(agents_dead) == NUM_AGENTS:
+			break
 
 		if not pause:
 

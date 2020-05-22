@@ -28,12 +28,12 @@ class Agent(pygame.sprite.Sprite):
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
-        self.new_x = -1
-        self.new_y = -1
-
-        while(isWall(self.layout,self.x,self.y)):
+        while(isWall(self.layout,self.x,self.y)): #or isExit(self.layout,self.x,self.y)):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
+
+        self.new_x = -1
+        self.new_y = -1
 
     def getPosition(self):
         return [self.x, self.y]
