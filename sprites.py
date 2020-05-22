@@ -28,6 +28,8 @@ class Agent(pygame.sprite.Sprite):
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
+        self.new_x = -1
+        self.new_y = -1
 
         while(isWall(self.layout,self.x,self.y)):
             self.x = random.randrange(0, len(self.layout))
@@ -35,6 +37,9 @@ class Agent(pygame.sprite.Sprite):
 
     def getPosition(self):
         return [self.x, self.y]
+
+    def getNewPosition(self):
+        return [self.new_x, self.new_y]
     
     def getID(self):
         return self.id
@@ -56,10 +61,17 @@ class Agent(pygame.sprite.Sprite):
         self.y += dy
 
 
-    def update(self):
+    def update(self, all_agents):
         if (self.health>0):
             if (len(self.plan)>0): #nasty FIXME
-                self.move(dx = (self.plan[0][0] - self.x), dy = (self.plan[0][1] - self.y))
+                self.new_x = (self.plan[0][0])
+                self.new_y = (self.plan[0][1])
+                
+                for agent in all_agents:
+                    if agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y): # hack
+                        return # wait
+
+                self.move(dx = (self.new_x - self.x), dy = (self.new_y - self.y))
                 self.plan    = self.plan[1:]
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE

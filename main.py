@@ -151,8 +151,8 @@ def drawText(surf, text, size, x, y):
 	surf.blit(text_surface, text_rect)
 
 def assertInRange(speaker, listener):
-	x = abs(speaker.x - listener.x)<=VOLUME or abs(speaker.y - listener.y)<=VOLUME
-	print(speaker.x,speaker.y, " ", listener.x, listener.y, x)
+	x = abs(speaker.x - listener.x)<=VOLUME and abs(speaker.y - listener.y)<=VOLUME
+	#if x: print(speaker.x,speaker.y, " ", listener.x, listener.y)
 	return x
 
 def communicate(speaker):
@@ -191,11 +191,11 @@ if __name__ == "__main__":
 	pause = False
 	run   = True
 	
-	i=1
 	agents_saved = []
 	agents_dead = []
 
 	# Main cycle
+	i = 0
 	while run:
 		
 		CLOCK.tick(FPS)
@@ -217,12 +217,12 @@ if __name__ == "__main__":
 				agent.plan_()
 				updateHealth(agent)
 
-			if (i%2==0): layout = propagateFire(layout)
-			if (i%1==0): layout = propagateSmoke(layout)
+			if (not i%(1/FIRE_PROP_FREQUENCY)): layout = propagateFire(layout)
+			if (not i%(1/SMOKE_PROP_FREQUENCY)): layout = propagateSmoke(layout)
 
-			all_sprites.update()
+			all_agents.update(all_agents)
 			draw()
 
-		i+=1
+		i += 1
 
 	pygame.quit()
