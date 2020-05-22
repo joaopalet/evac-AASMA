@@ -169,7 +169,7 @@ def drawText(surf, text, size, x, y):
 	font = pygame.font.Font(font_name, size)
 	text_surface = font.render(text, True, WHITE, BLACK)
 	text_rect = text_surface.get_rect()
-	text_rect.midtop = (x,y)
+	text_rect.midtop = (int(x),int(y))
 	surf.blit(text_surface, text_rect)
 
 def assertInRange(speaker, listener):
@@ -233,6 +233,12 @@ if __name__ == "__main__":
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
 					pause = not pause
+
+		if pause:
+			pygame.mixer.pause()
+		else:
+			pygame.mixer.unpause()
+
 
 		if len(agents_saved) + len(agents_dead) == NUM_AGENTS:
 			break
