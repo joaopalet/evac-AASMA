@@ -13,21 +13,26 @@ def drawGrid():
         pygame.draw.line(SCREEN, BLACK, (0, y), (WIDTH, y))
 
 def updateHealth(agent):
-    pos = agent.getPosition()
-    id  = agent.getID()
-    if (isExit(layout,pos[0], pos[1]) and id not in agents_saved):
-        agents_saved.append(id)
-    if(agent.getHealth() > 0):
-        if (isSmoke(layout,pos[0], pos[1])): 
-            new_health = agent.getHealth() - SMOKE_DMG
-            agent.setHealth(new_health)
-        if (isFire(layout,pos[0], pos[1])): 
-            new_health = agent.getHealth() - FIRE_DMG
-            agent.setHealth(new_health)
-    if(agent.getHealth() <= 0):
-        agent.setColor(BLACK)
-        if (id not in agents_dead):
-            agents_dead.append(id)
+	pos = agent.getPosition()
+	identifier  = agent.getID()
+	if (isExit(layout,pos[0], pos[1]) and identifier not in agents_saved):
+		agents_saved.append(identifier)
+		all_sprites.remove(agent)
+		all_agents.remove(agent)
+
+	if(agent.getHealth() > 0):
+		if (isSmoke(layout,pos[0], pos[1])): 
+			new_health = agent.getHealth() - SMOKE_DMG
+			agent.setHealth(new_health)
+		if (isFire(layout,pos[0], pos[1])): 
+			new_health = agent.getHealth() - FIRE_DMG
+			agent.setHealth(new_health)
+
+	if(agent.getHealth() <= 0):
+		agent.die()
+		agent.setColor(BLACK)
+		if (identifier not in agents_dead):
+			agents_dead.append(identifier)
 
 def createWalls():
     for i in range(int(GRIDWIDTH)):
@@ -85,30 +90,24 @@ Cada célula em fogo faz fumo numa célula adjacente aleatória com probabilidad
 def propagateFire(layout):
 	spread    = [True, False] #either it spreads or not
 	propagate = [ALFA,  1-ALFA]
-	put_out   = [BETA,  1-BETA]
 	smoke     = [SMOKE, 1-SMOKE]
 	row       = [-1, 0, 0, 1]
 	col       = [0, -1, 1, 0]
 
-	#REMOVER FOGO:
-	#for fire in all_fires:
-	#	if (choices(spread, put_out)[0]):
-	#		layout[fire.x][fire.y] = 'O'
-	#		all_fires.remove(fire)
-	#		all_sprites.remove(fire)
-
 	new_fires = []
 	for fire in all_fires:
-		i = random.randrange(0, 4)  #FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
+		i = random.randrange(0, 4)
 		x = fire.x + row[i]
 		y = fire.y + col[i]
 		propagate_ = propagate
-		if (isSmoke(layout,x, y)): #aumenta a probabilidade de propagar o fogo para a casa (x,y)
+		if (isSmoke(layout,x, y)):
 			propagate_[0] += (1-propagate_[1])/2
 			propagate_[1] = 1 - propagate_[0]
 		if (choices(spread, propagate_)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isExit(layout,x, y)):
-			#if (isSmoke(layout,x,y)):
-			#	all_smokes.remove()
+			for smoke in all_smokes:
+				if smoke.x == x and smoke.y == y:
+					all_smokes.remove(smoke)
+					break
 			new_fires.append([x,y])
 
 	for fire in new_fires:
@@ -118,7 +117,7 @@ def propagateFire(layout):
 
 def propagateSmoke(layout):
 	spread = [True, False]        #either it spreads or not
-	wind   = [0.4, 0.3, 0.2, 0.1] #Norte Sul Este Oeste
+	wind   = [0.4, 0.3, 0.2, 0.1]
 	smk    = [SMOKE, 1-SMOKE]
 	row    = [-1, 0, 0, 1]
 	col    = [0, -1, 1, 0]
@@ -154,9 +153,9 @@ def draw():
 	all_alarms.draw(SCREEN)
 	all_agents.draw(SCREEN)
 	s = 'Saved Agents: ' + str(len(agents_saved))
-	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT+10)
+	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT)
 	s = 'Dead Agents: ' + str(len(agents_dead))
-	drawText(SCREEN, s, 34, 2*WIDTH/3, HEIGHT+10)
+	drawText(SCREEN, s, 34, 2*WIDTH/3, HEIGHT)
 	drawGrid()
 	pygame.display.flip()
 
@@ -186,7 +185,7 @@ if __name__ == "__main__":
 
 	pygame.init()
 	pygame.display.set_caption("Evacuation Simulation")
-	SCREEN = pygame.display.set_mode((WIDTH, HEIGHT+50))
+	SCREEN = pygame.display.set_mode((WIDTH, HEIGHT+40))
 	CLOCK = pygame.time.Clock()
 	SCREEN.fill(BLACK)
 
@@ -214,11 +213,11 @@ if __name__ == "__main__":
 	pause = False
 	run   = True
 	
-	i=1
 	agents_saved = []
 	agents_dead = []
 
 	# Main cycle
+	i = 0
 	while run:
 		
 		CLOCK.tick(FPS)
@@ -231,6 +230,9 @@ if __name__ == "__main__":
 				if event.key == pygame.K_LEFT:
 					pause = not pause
 
+		if len(agents_saved) + len(agents_dead) == NUM_AGENTS:
+			break
+
 		if not pause:
 			
 			for agent in all_agents:
@@ -242,38 +244,14 @@ if __name__ == "__main__":
 				agent.plan_()
 				updateHealth(agent)
 
-			if (i%2==0): layout = propagateFire(layout)
-			if (i%1==0): layout = propagateSmoke(layout)
+			if (i%2 == 0): layout = propagateFire(layout)
+			if (i%1 == 0): layout = propagateSmoke(layout)
 
 			alarm()
 
 			all_sprites.update()
 			draw()
 
-		#if(i==20): pygame.mixer.pause()
 		i+=1
 
 	pygame.quit()
-
-
-
-# W W W W W W W W W W W W W W W W W W W W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W W O W W W O W W W O W W O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O E
-# W O O O O W W O W W W W W O O W O O O W
-# W O O O O W W O W W W W W O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W O O O O O O O O O O O O O O W O O O W
-# W W W O W W W O W W W O W O O W O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W O O O W O O O W O O O W O O O O O O W
-# W W W W W W W W W W W W W W W W W W W W

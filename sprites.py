@@ -1,10 +1,10 @@
 # Sprites
 
 import pygame
-from settings import *
 import random
 from random import choices
 import numpy as np
+from settings import *
 from auxiliary import *
 
 
@@ -33,8 +33,14 @@ class Agent(pygame.sprite.Sprite):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
 
+        self.new_x = -1
+        self.new_y = -1
+
     def getPosition(self):
         return [self.x, self.y]
+
+    def getNewPosition(self):
+        return [self.new_x, self.new_y]
     
     def getID(self):
         return self.id
@@ -55,11 +61,24 @@ class Agent(pygame.sprite.Sprite):
         self.x += dx
         self.y += dy
 
+    def die(self):
+        self.dead = True
 
-    def update(self):
-        if (self.health>0):
+    def isDead(self):
+        return self.dead
+
+    def update(self, all_agents):
+        if (not self.dead):
             if (len(self.plan)>0): #nasty FIXME
-                self.move(dx = (self.plan[0][0] - self.x), dy = (self.plan[0][1] - self.y))
+                self.new_x = (self.plan[0][0])
+                self.new_y = (self.plan[0][1])
+                
+                for agent in all_agents:
+                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y): # hack
+                        # wait
+                        return 
+
+                self.move(dx = (self.new_x - self.x), dy = (self.new_y - self.y))
                 self.plan    = self.plan[1:]
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE

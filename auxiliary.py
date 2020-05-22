@@ -25,7 +25,7 @@ def isAlarm(layout, i, j):
 # Auxiliar
 
 def getLayout():
-    f = open('maze2.txt', 'r').read()
+    f = open('supermarket.txt', 'r').read()
     p = []
     p = [item.split() for item in f.split('\n')[:-1]]
     return p
