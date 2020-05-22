@@ -14,9 +14,9 @@ def drawGrid():
 
 def updateHealth(agent):
 	pos = agent.getPosition()
-	id  = agent.getID()
-	if (isExit(layout,pos[0], pos[1]) and id not in agents_saved):
-		agents_saved.append(id)
+	identifier  = agent.getID()
+	if (isExit(layout,pos[0], pos[1]) and identifier not in agents_saved):
+		agents_saved.append(identifier)
 
 	if(agent.getHealth() > 0):
 		if (isSmoke(layout,pos[0], pos[1])): 
@@ -29,8 +29,8 @@ def updateHealth(agent):
 	else:
 		agent.die()
 		agent.setColor(BLACK)
-		if (id not in agents_dead):
-			agents_dead.append(id)
+		if (identifier not in agents_dead):
+			agents_dead.append(identifier)
 
 def createWalls():
     for i in range(int(GRIDWIDTH)):
@@ -70,30 +70,24 @@ Cada célula em fogo faz fumo numa célula adjacente aleatória com probabilidad
 def propagateFire(layout):
 	spread    = [True, False] #either it spreads or not
 	propagate = [ALFA,  1-ALFA]
-	put_out   = [BETA,  1-BETA]
 	smoke     = [SMOKE, 1-SMOKE]
 	row       = [-1, 0, 0, 1]
 	col       = [0, -1, 1, 0]
 
-	#REMOVER FOGO:
-	#for fire in all_fires:
-	#	if (choices(spread, put_out)[0]):
-	#		layout[fire.x][fire.y] = 'O'
-	#		all_fires.remove(fire)
-	#		all_sprites.remove(fire)
-
 	new_fires = []
 	for fire in all_fires:
-		i = random.randrange(0, 4)  #FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
+		i = random.randrange(0, 4)
 		x = fire.x + row[i]
 		y = fire.y + col[i]
 		propagate_ = propagate
-		if (isSmoke(layout,x, y)): #aumenta a probabilidade de propagar o fogo para a casa (x,y)
+		if (isSmoke(layout,x, y)):
 			propagate_[0] += (1-propagate_[1])/2
 			propagate_[1] = 1 - propagate_[0]
 		if (choices(spread, propagate_)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isExit(layout,x, y)):
-			#if (isSmoke(layout,x,y)):
-			#	all_smokes.remove()
+			for smoke in all_smokes:
+				if smoke.x == x and smoke.y == y:
+					all_smokes.remove(smoke)
+					break
 			new_fires.append([x,y])
 
 	for fire in new_fires:
@@ -103,7 +97,7 @@ def propagateFire(layout):
 
 def propagateSmoke(layout):
 	spread = [True, False]        #either it spreads or not
-	wind   = [0.4, 0.3, 0.2, 0.1] #Norte Sul Este Oeste
+	wind   = [0.4, 0.3, 0.2, 0.1]
 	smk    = [SMOKE, 1-SMOKE]
 	row    = [-1, 0, 0, 1]
 	col    = [0, -1, 1, 0]
@@ -220,8 +214,8 @@ if __name__ == "__main__":
 				agent.plan_()
 				updateHealth(agent)
 
-			if (not i%(1/FIRE_PROP_FREQUENCY)): layout = propagateFire(layout)
-			if (not i%(1/SMOKE_PROP_FREQUENCY)): layout = propagateSmoke(layout)
+			if (i%2 == 0): layout = propagateFire(layout)
+			if (i%1 == 0): layout = propagateSmoke(layout)
 
 			all_agents.update(all_agents)
 			draw()
