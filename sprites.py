@@ -60,15 +60,21 @@ class Agent(pygame.sprite.Sprite):
         self.x += dx
         self.y += dy
 
+    def die(self):
+        self.dead = True
+
+    def isDead(self):
+        return self.dead
+
 
     def update(self, all_agents):
-        if (self.health>0):
+        if (not self.dead):
             if (len(self.plan)>0): #nasty FIXME
                 self.new_x = (self.plan[0][0])
                 self.new_y = (self.plan[0][1])
                 
                 for agent in all_agents:
-                    if agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y): # hack
+                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y): # hack
                         return # wait
 
                 self.move(dx = (self.new_x - self.x), dy = (self.new_y - self.y))

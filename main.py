@@ -13,21 +13,24 @@ def drawGrid():
         pygame.draw.line(SCREEN, BLACK, (0, y), (WIDTH, y))
 
 def updateHealth(agent):
-    pos = agent.getPosition()
-    id  = agent.getID()
-    if (isExit(layout,pos[0], pos[1]) and id not in agents_saved):
-        agents_saved.append(id)
-    if(agent.getHealth() > 0):
-        if (isSmoke(layout,pos[0], pos[1])): 
-            new_health = agent.getHealth() - SMOKE_DMG
-            agent.setHealth(new_health)
-        if (isFire(layout,pos[0], pos[1])): 
-            new_health = agent.getHealth() - FIRE_DMG
-            agent.setHealth(new_health)
-    if(agent.getHealth() <= 0):
-        agent.setColor(BLACK)
-        if (id not in agents_dead):
-            agents_dead.append(id)
+	pos = agent.getPosition()
+	id  = agent.getID()
+	if (isExit(layout,pos[0], pos[1]) and id not in agents_saved):
+		agents_saved.append(id)
+
+	if(agent.getHealth() > 0):
+		if (isSmoke(layout,pos[0], pos[1])): 
+			new_health = agent.getHealth() - SMOKE_DMG
+			agent.setHealth(new_health)
+		if (isFire(layout,pos[0], pos[1])): 
+			new_health = agent.getHealth() - FIRE_DMG
+			agent.setHealth(new_health)
+
+	else:
+		agent.die()
+		agent.setColor(BLACK)
+		if (id not in agents_dead):
+			agents_dead.append(id)
 
 def createWalls():
     for i in range(int(GRIDWIDTH)):
