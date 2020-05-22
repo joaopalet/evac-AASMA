@@ -18,6 +18,9 @@ def isWall(layout, i, j):
 def isExit(layout, i, j):
 	return layout[i][j] == 'E'
 
+def isAlarm(layout, i, j):
+	return layout[i][j] == 'A'
+
 
 # Auxiliar
 

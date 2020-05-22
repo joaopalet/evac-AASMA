@@ -12,7 +12,7 @@ class Agent(pygame.sprite.Sprite):
     def __init__(self, identifier, health, layout, risk, exits):
         pygame.sprite.Sprite.__init__(self)
         self.image  = pygame.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
+        self.image.fill(DARKRED)
         self.rect = self.image.get_rect()
 
 
@@ -29,7 +29,7 @@ class Agent(pygame.sprite.Sprite):
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
 
-        while(isWall(self.layout,self.x,self.y)):
+        while(isWall(self.layout,self.x,self.y) or isAlarm(self.layout, self.x,self.y)):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
 
@@ -64,6 +64,12 @@ class Agent(pygame.sprite.Sprite):
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE
 
+    def checkAlarm(self,alarm):
+        if alarm and not self.danger:
+            self.danger     = True
+            self.reconsider = True
+
+    
     #ele só pode ficar em perigo de duas maneiras. ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
     def receiveMessage(self, message):
         for i in range(len(message)):
@@ -103,7 +109,7 @@ class Agent(pygame.sprite.Sprite):
             i = random.randrange(0, 4)
             x = self.x + row[i]
             y = self.y + col[i]
-            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isExit(self.layout,x,y)):
+            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isExit(self.layout,x,y) and not isAlarm(self.layout,x,y)):
                 return [[x, y]]
         return [[self.x, self.y]]
 
@@ -117,10 +123,10 @@ class Agent(pygame.sprite.Sprite):
     def panic(self):  #reactive agent logic
         row = [-1, 0, 0, 1]
         col = [0, -1, 1, 0]
-        for i in range(len(row)):  #REFACTOR for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
+        for i in range(len(row)):  ##FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
             x = self.x + row[i]
             y = self.y + col[i]
-            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y)):
+            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isAlarm(layout,x,y)):
                 return [[x,y]]
         return [[self.x,self.y]]
     
@@ -158,7 +164,7 @@ class Agent(pygame.sprite.Sprite):
                 y = cur[1] + col[i]
 
                 if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout[0])): continue
-                if(not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and visited[x][y] == 0):
+                if(not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and visited[x][y] == 0 and not isAlarm(self.layout,x,y)):
                     visited[x][y] = 1
                     l = [x, y]
                     queue.append(l)
@@ -168,8 +174,6 @@ class Agent(pygame.sprite.Sprite):
         for dest in dests:
             if visited[dest[0]][dest[1]]:
                 panic = False
-
-        #panic = visited[dest[0]][dest[1]] in dests #FIXME
 
         if panic:
             return self.panic()
@@ -194,6 +198,32 @@ class Wall(pygame.sprite.Sprite):
         self.y = y
         self.rect.x = self.x * TILESIZE 
         self.rect.y = self.y * TILESIZE
+
+class Alarm(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image  = pygame.Surface((TILESIZE, TILESIZE))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = self.x * TILESIZE
+        self.rect.y = self.y * TILESIZE
+
+    def FireAlarm(self, layout):
+        x0 = self.x - ALARMRANGE
+        y0 = self.y - ALARMRANGE 
+        x1 = self.x + ALARMRANGE
+        y1 = self.y + ALARMRANGE
+
+        for i in range(x0, x1+1):
+            for j in range(y0, y1+1):
+                if(isSmoke(layout, i, j) or isFire(layout, i, j)): 
+                    self.image.fill(RED)
+                    return True
+        return False
+                
+
 
 class Fire(pygame.sprite.Sprite):
     def __init__(self, x, y):

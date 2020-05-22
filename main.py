@@ -37,6 +37,24 @@ def createWalls():
                 all_sprites.add(wall)
                 all_walls.add(wall)
 
+
+def createAlarm():
+	pos = [ [index, row.index('A')] for index, row in enumerate(layout) if 'A' in row]
+	for p in pos:
+		i = p[0]
+		j = p[1]
+		alarm = Alarm(i, j)
+		all_sprites.add(alarm)
+		all_alarms.add(alarm)
+
+def alarm():
+	global soundAlarm
+	for alarm in all_alarms:
+		if(alarm.FireAlarm(layout)):
+			pygame.mixer.Sound.play(fire_alarm)
+			soundAlarm = True
+
+
 def createFires():
 	x = random.randrange(0, len(layout))
 	y = random.randrange(0, len(layout[0]))
@@ -133,6 +151,7 @@ def draw():
 	all_walls.draw(SCREEN)
 	all_smokes.draw(SCREEN)
 	all_fires.draw(SCREEN)
+	all_alarms.draw(SCREEN)
 	all_agents.draw(SCREEN)
 	s = 'Saved Agents: ' + str(len(agents_saved))
 	drawText(SCREEN, s, 34, WIDTH/3, HEIGHT+10)
@@ -151,18 +170,19 @@ def drawText(surf, text, size, x, y):
 	surf.blit(text_surface, text_rect)
 
 def assertInRange(speaker, listener):
-	x = abs(speaker.x - listener.x)<=VOLUME or abs(speaker.y - listener.y)<=VOLUME
-	print(speaker.x,speaker.y, " ", listener.x, listener.y, x)
-	return x
+	return abs(speaker.x - listener.x)<=VOLUME and abs(speaker.y - listener.y)<=VOLUME
 
 def communicate(speaker):
 	for listener in all_agents:
 		if (speaker.getID() == listener.getID()): continue
 		if assertInRange(speaker, listener):
 			listener.receiveMessage(speaker.getLayout())
+
 # Main
 if __name__ == "__main__":
-	global SCREEN, CLOCK, layout, all_sprites, all_agents, all_walls, all_fires, all_smokes, exits
+	global SCREEN, CLOCK, layout, all_sprites, all_agents, all_walls, all_fires, all_smokes, exits, soundAlarm
+
+	soundAlarm = False
 
 	pygame.init()
 	pygame.display.set_caption("Evacuation Simulation")
@@ -179,7 +199,10 @@ if __name__ == "__main__":
 	all_agents  = pygame.sprite.Group()
 	all_fires   = pygame.sprite.Group()
 	all_smokes  = pygame.sprite.Group()
+	all_alarms  = pygame.sprite.Group()
 	createWalls()
+	createAlarm()
+	fire_alarm = pygame.mixer.Sound("FireAlarm.wav")
 
 	for i in range(NUM_AGENTS):
 		player = Agent(i+1, HEALTH_POINTS, deepcopy(layout), 1, exits)
@@ -209,10 +232,12 @@ if __name__ == "__main__":
 					pause = not pause
 
 		if not pause:
-
+			
 			for agent in all_agents:
 				agent.percept(layout)
-				#communicate(agent)
+				#print('soundAlarm: ', soundAlarm)
+				agent.checkAlarm(soundAlarm)
+				communicate(agent)
 			for agent in all_agents:
 				agent.plan_()
 				updateHealth(agent)
@@ -220,9 +245,12 @@ if __name__ == "__main__":
 			if (i%2==0): layout = propagateFire(layout)
 			if (i%1==0): layout = propagateSmoke(layout)
 
+			alarm()
+
 			all_sprites.update()
 			draw()
 
+		#if(i==20): pygame.mixer.pause()
 		i+=1
 
 	pygame.quit()
