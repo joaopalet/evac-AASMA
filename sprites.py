@@ -29,7 +29,7 @@ class Agent(pygame.sprite.Sprite):
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
 
-        while(isWall(self.layout,self.x,self.y) or isAlarm(self.layout, self.x,self.y)):
+        while(isWall(self.layout,self.x,self.y) or isAlarm(self.layout, self.x,self.y) or isExit(layout, self.x, self.y)):
             self.x = random.randrange(0, len(self.layout))
             self.y = random.randrange(0, len(self.layout[0]))
 
@@ -229,7 +229,7 @@ class Alarm(pygame.sprite.Sprite):
         self.rect.x = self.x * TILESIZE
         self.rect.y = self.y * TILESIZE
 
-    def FireAlarm(self, layout):
+    def CheckAlarm(self, layout):
         x0 = self.x - ALARMRANGE
         y0 = self.y - ALARMRANGE 
         x1 = self.x + ALARMRANGE
@@ -237,11 +237,11 @@ class Alarm(pygame.sprite.Sprite):
 
         for i in range(x0, x1+1):
             for j in range(y0, y1+1):
-                if(isSmoke(layout, i, j) or isFire(layout, i, j)): 
-                    self.image.fill(RED)
-                    return True
+                if(isSmoke(layout, i, j) or isFire(layout, i, j)): return True
         return False
-                
+    
+    def FireAlarm(self):
+        self.image.fill(RED)
 
 
 class Fire(pygame.sprite.Sprite):

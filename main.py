@@ -55,9 +55,13 @@ def createAlarm():
 def alarm():
 	global soundAlarm
 	for alarm in all_alarms:
-		if(alarm.FireAlarm(layout)):
+		if(alarm.CheckAlarm(layout)):
 			pygame.mixer.Sound.play(fire_alarm)
 			soundAlarm = True
+			break
+	if(soundAlarm):
+		for alarm in all_alarms:
+			alarm.FireAlarm()
 
 
 def createFires():
@@ -249,7 +253,7 @@ if __name__ == "__main__":
 
 			alarm()
 
-			all_sprites.update()
+			all_agents.update(all_agents)
 			draw()
 
 		i+=1
