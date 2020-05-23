@@ -57,7 +57,7 @@ def alarm():
 	global soundAlarm
 	for alarm in all_alarms:
 		if(alarm.CheckAlarm(layout)):
-			pygame.mixer.Sound.play(fire_alarm)
+			#pygame.mixer.Sound.play(fire_alarm)
 			soundAlarm = True
 			break
 	if(soundAlarm):
@@ -74,14 +74,12 @@ def createFires():
 	addFire(x,y)
 
 def addFire(i,j):
-	#assert(i>0 and i<len(layout)-1 and j>0 and j<len(layout[0])-1)
 	fire = Fire(i,j)
 	layout[i][j] = 'F'
 	all_sprites.add(fire)
 	all_fires.add(fire)
 
 def addSmoke(i,j):
-	#assert(i>0 and i<len(layout)-1 and j>0 and j<len(layout[0])-1)
 	smoke = Smoke(i,j)
 	layout[i][j] = 'S'
 	all_sprites.add(smoke)
@@ -210,10 +208,10 @@ if __name__ == "__main__":
 	all_alarms  = pygame.sprite.Group()
 	createWalls()
 	createAlarm()
-	fire_alarm = pygame.mixer.Sound("FireAlarm.wav")
+	#fire_alarm = pygame.mixer.Sound("FireAlarm.wav")
 
 	for i in range(NUM_AGENTS):
-		player = Agent(i+1, HEALTH_POINTS, deepcopy(layout), 1, exits)
+		player = Agent(i+1, HEALTH_POINTS, deepcopy(layout), 0, exits)
 		all_sprites.add(player)
 		all_agents.add(player)
 
