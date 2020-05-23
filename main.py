@@ -178,6 +178,8 @@ def assertInRange(speaker, listener):
 	return abs(speaker.x - listener.x)<=VOLUME and abs(speaker.y - listener.y)<=VOLUME
 
 def communicate(speaker):
+	if (not speaker.isCommunicative()):
+		return
 	for listener in all_agents:
 		if (speaker.getID() == listener.getID()): continue
 		if assertInRange(speaker, listener):
@@ -211,7 +213,7 @@ if __name__ == "__main__":
 	#fire_alarm = pygame.mixer.Sound("FireAlarm.wav")
 
 	for i in range(NUM_AGENTS):
-		player = Agent(i+1, HEALTH_POINTS, deepcopy(layout), 0, exits)
+		player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 1, True)
 		all_sprites.add(player)
 		all_agents.add(player)
 

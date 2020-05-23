@@ -11,22 +11,23 @@ import math
 
 
 class Agent(pygame.sprite.Sprite):
-    def __init__(self, identifier, health, layout, risk, exits):
+    def __init__(self, identifier, layout, exits, health, risk, communicates):
         pygame.sprite.Sprite.__init__(self)
         self.image  = pygame.Surface((TILESIZE, TILESIZE))
         self.image.fill(DARKRED)
         self.rect = self.image.get_rect()
 
 
-        self.id         = identifier
-        self.health     = health
-        self.risk       = risk
-        self.layout     = layout
-        self.plan       = []
-        self.exits      = exits
-        self.danger     = False
-        self.reconsider = False
-        self.dead       = False
+        self.id           = identifier
+        self.health       = health
+        self.risk         = risk
+        self.communicates = communicates
+        self.layout       = layout
+        self.plan         = []
+        self.exits        = exits
+        self.danger       = False
+        self.reconsider   = False
+        self.dead         = False
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
@@ -68,6 +69,9 @@ class Agent(pygame.sprite.Sprite):
 
     def isDead(self):
         return self.dead
+
+    def isCommunicative(self):
+        return self.communicates
 
 
     def update(self, all_agents):
