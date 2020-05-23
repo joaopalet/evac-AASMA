@@ -6,7 +6,8 @@ from random import choices
 import numpy as np
 from settings import *
 from auxiliary import *
-
+import heapq
+import math
 
 class Agent(pygame.sprite.Sprite):
     def __init__(self, identifier, health, layout, risk, exits):
@@ -74,8 +75,7 @@ class Agent(pygame.sprite.Sprite):
                 self.new_y = (self.plan[0][1])
                 
                 for agent in all_agents:
-                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y): # hack
-                        # wait
+                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y):
                         return 
 
                 self.move(dx = (self.new_x - self.x), dy = (self.new_y - self.y))
@@ -83,17 +83,16 @@ class Agent(pygame.sprite.Sprite):
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE
 
-    def checkAlarm(self,alarm):
+    def checkAlarm(self, alarm):
         if alarm and not self.danger:
             self.danger     = True
             self.reconsider = True
-
     
-    #ele só pode ficar em perigo de duas maneiras. ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
+    #O agente so pode ficar em perigo de duas maneiras: ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
     def receiveMessage(self, message):
         for i in range(len(message)):
             for j in range(len(message[i])):
-                if (self.layout[i][j] != message[i][j]): #and (isFire(message,i,j) or isSmoke(message,i,j))):
+                if (self.layout[i][j] != message[i][j] and (isFire(message,i,j) or isSmoke(message,i,j))):
                     self.danger       = True
                     self.reconsider   = True
                     self.layout[i][j] = message[i][j]
@@ -135,23 +134,36 @@ class Agent(pygame.sprite.Sprite):
     def plan_(self):
         if (not self.danger):     #anda aleatoriamente por aí
             self.plan = self.moveRandom()
-        elif (self.reconsider):   #update nos beliefs dele -> fogo or fumo -> bfs
-            self.plan = self.BFS()
-        #...?
+        elif (self.reconsider):   #update nos beliefs dele -> fogo or fumo -> shortest paths
+            self.plan = self.Dijkstra()
 
-    def panic(self):  #reactive agent logic
+
+    #Our reactive agent logic
+    def panic(self):
+        #procura uma casa adjacente livre. se nao existir uma, procura uma casa com fumo. se nao existir, desiste :(
         row = [-1, 0, 0, 1]
         col = [0, -1, 1, 0]
-        for i in range(len(row)):  ##FIXME for pos in adjacent_pos: ...   where adjacent_pos = auxiliary_GetClearNeighbours()
+
+        # shuffle visiting order of the neighbours
+        combined = list(zip(row, col))
+        random.shuffle(combined)
+        row, col = zip(*combined)
+        
+        for i in range(len(row)):
             x = self.x + row[i]
             y = self.y + col[i]
-            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isAlarm(layout,x,y)):
+            if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isAlarm(self.layout,x,y)):
                 return [[x,y]]
-        return [[self.x,self.y]]
+        for i in range(len(row)):
+            x = self.x + row[i]
+            y = self.y + col[i]
+            if (isSmoke(self.layout,x,y)):
+                return [[x,y]]
+        return [[self.x,self.y]] #desisti
     
     def BFS(self):
         source  = [self.x, self.y]
-        dests    = self.exits
+        dests   = self.exits
        	visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
         queue   = []
         path    = []
@@ -203,6 +215,206 @@ class Agent(pygame.sprite.Sprite):
             for i in range(len(prev)):
                 if(at == prev[i][0]): 
                 	at = prev[i][1]
+        path.reverse()
+        return path
+
+
+    def Dijkstra(self):
+        source  = [self.x, self.y]
+        dests   = self.exits
+
+        if (source in dests):
+            return [source]
+
+        row = [-1, 0, 0, 1]
+        col = [0, -1, 1, 0]
+
+        queue   = []
+        my_dest = []
+        visited = []
+        parents = dict()
+        distance = dict()
+        enqueued = dict()
+
+        # Initialize stuff
+        for i in range(len(self.layout)):
+            visit = []
+            for j in range(len(self.layout)):
+                visit.append(0)
+                parents[(i,j)]  = None
+                distance[(i,j)] = math.inf
+                enqueued[(i,j)] = None
+            visited.append(visit)
+
+        queue = [[0, source[0], source[1]]]
+        heapq.heapify(queue)
+        distance[tuple(source)] = 0
+        enqueued[tuple(source)] = True
+        visited [source[0]][source[1]] = 1
+
+        while (len(queue) > 0):
+            
+            cur    = heapq.heappop(queue)
+            parent = (cur[1], cur[2])
+
+            if (not enqueued[parent]):
+                continue
+
+            enqueued[parent] = False
+
+            if(list(parent) in dests): 
+                my_dest = list(parent)
+                break
+
+            # shuffle visiting order of the neighbours
+            combined = list(zip(row, col))
+            random.shuffle(combined)
+            row, col = zip(*combined)
+
+            for i in range(len(row)):
+
+                x, y = parent[0] + row[i], parent[1] + col[i]
+                if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout[0])): continue
+
+                if (enqueued[(x,y)] == False ):
+                    continue
+
+                if(not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isAlarm(self.layout,x,y) and visited[x][y] == 0):
+                    visited[x][y] = 1
+                    
+                    #Compute cost of this transition
+                    weight = 1
+                    if (isSmoke(self.layout,x,y)):
+                        weight += 1-self.risk
+
+                    alternative = distance[parent] + weight
+
+                    if (alternative < distance[(x,y)]):
+                        distance[(x,y)] = alternative
+                        parents[(x,y)]  = list(parent)
+                        heapq.heappush(queue,[alternative, x, y]) #should be heapq.decreaseKey. maybe "if not enqueued" depois de heapq.heappop() solves it
+                        enqueued[(x,y)] = True
+
+        panic = True
+        for dest in dests:
+            if visited[dest[0]][dest[1]]:
+                panic = False
+
+        if panic:
+            return self.panic()
+
+        path = []
+        at   = my_dest
+        while at != source:
+            path.append(at)
+            at = parents[tuple(at)]
+
+        path.reverse()
+        return path
+
+    #maneira mais elegante de recuperar o path. a chamada é [source] + recoverPath(my_pos, exit, parents)
+    def recoverPath(self, source, target, parents):
+        if (source==parents[target]):
+            return [target]
+        else:
+            return recoverPath(source, parents[target], parents) + [target]
+
+
+    def Dijkstra_Bad(self):
+        source  = [self.x, self.y]
+        dests   = self.exits
+        visited = [[0 for _ in range(len(self.layout))] for _ in range(len(self.layout))]
+        queue   = []
+        prev    = []
+        my_dest = []
+        parents = dict()
+
+        if (source in dests):
+            return [source]
+
+        queue = [[0, source[0], source[1]]]
+        heapq.heapify(queue)
+
+        distance = dict()
+        distance[tuple(source)] = 0
+
+        enqueued = dict()
+        enqueued[tuple(source)] = True
+        parents[tuple(source)]  = None #FIXME think about this. i think its safe but still
+
+        visited[source[0]][source[1]] = 1
+
+        row = [-1, 0, 0, 1]
+        col = [0, -1, 1, 0]
+        
+
+        while (len(queue) > 0):
+            
+            cur    = heapq.heappop(queue)
+            parent = (cur[1], cur[2])
+
+            if (parent in enqueued):
+                if (not enqueued[parent]):
+                    continue
+
+            enqueued[parent] = False
+
+            if(list(parent) in dests): 
+                my_dest = [parent[0], parent[1]]
+                break
+
+            # shuffle visiting order of the neighbours
+            combined = list(zip(row, col))
+            random.shuffle(combined)
+            row, col = zip(*combined)
+
+            for i in range(len(row)):
+
+                x, y = parent[0] + row[i], parent[1] + col[i]
+                if (x < 0 or y < 0 or x >= len(self.layout) or y >= len(self.layout[0])): continue
+                
+                #será que compensa fazer isto sempre em vez de inicializar WIDTH*HEIGHT campos? se não, usar defaultdictionaries
+                if ((x,y) in enqueued):
+                    if (not enqueued[(x,y)]): 
+                        continue
+
+                if(not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isAlarm(self.layout,x,y) and visited[x][y] == 0):
+                    visited[x][y] = 1
+                    
+                    #Compute cost of this transition
+                    weight = 1            #FIXME   * 1
+                    if (isSmoke(self.layout,x,y)):
+                        weight += 0
+                        #weight += (1-self.risk) * 1   #FIXME   * 1
+
+                    alternative = distance[parent] + weight
+
+                    if ((x,y) in distance):
+                        if (alternative < distance[(x,y)]):
+                            distance[(x,y)] = alternative
+                            heapq.heappush(queue,[alternative, x, y]) #FIXME? should be heapq.decreaseKey( (x,y), alternative)
+                                                                      #acho que resolve ver se not enqueued depois de heapq.heappop()
+                            parents[(x,y)] = list(parent)
+                    else:
+                        distance[(x,y)] = alternative
+                        heapq.heappush(queue, [alternative, x, y])  #heappush maintains the heap invariant!
+                        enqueued[(x,y)] = True
+                        parents[(x,y)] = list(parent)
+
+        panic = True
+        for dest in dests:
+            if visited[dest[0]][dest[1]]:
+                panic = False
+
+        if panic:
+            return self.panic()
+
+        path = []
+        at   = my_dest
+        while at != source:
+            path.append(at)
+            at = parents[tuple(at)]
+
         path.reverse()
         return path
 
