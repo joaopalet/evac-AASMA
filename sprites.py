@@ -141,7 +141,7 @@ class Agent(pygame.sprite.Sprite):
         if (not self.danger):     #anda aleatoriamente por aí
             self.plan = self.moveRandom()
         elif (self.reconsider):   #update nos beliefs dele -> fogo or fumo -> shortest paths
-            self.plan = self.Dijkstra_Bad()
+            self.plan = self.Dijkstra()
 
 
     #Our reactive agent logic
