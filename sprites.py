@@ -81,7 +81,7 @@ class Agent(pygame.sprite.Sprite):
                 self.new_y = (self.plan[0][1])
                 
                 for agent in all_agents:
-                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y] and not isExit(self.layout, self.new_x, self.new_y):
+                    if not agent.isDead() and agent.getPosition() == [self.new_x, self.new_y] and not agent.getNewPosition() == [self.x, self.y]:
                         return 
 
                 self.move(dx = (self.new_x - self.x), dy = (self.new_y - self.y))
