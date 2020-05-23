@@ -116,6 +116,7 @@ def propagateFire(layout):
 
 	return layout
 
+
 def propagateSmoke(layout):
 	spread = [True, False]        #either it spreads or not
 	wind   = [0.4, 0.3, 0.2, 0.1]
@@ -150,6 +151,7 @@ def propagateSmoke(layout):
 			addSmoke(x+row[3], y+col[3])
 
 	return layout
+
 
 def draw():				
 	SCREEN.fill(WHITE)

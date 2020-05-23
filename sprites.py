@@ -68,6 +68,7 @@ class Agent(pygame.sprite.Sprite):
     def isDead(self):
         return self.dead
 
+
     def update(self, all_agents):
         if (not self.dead):
             if (len(self.plan)>0): #nasty FIXME
@@ -83,11 +84,13 @@ class Agent(pygame.sprite.Sprite):
                 self.rect.x  = self.x * TILESIZE 
                 self.rect.y  = self.y * TILESIZE
 
+
     def checkAlarm(self, alarm):
         if alarm and not self.danger:
             self.danger     = True
             self.reconsider = True
     
+
     #O agente so pode ficar em perigo de duas maneiras: ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
     def receiveMessage(self, message):
         for i in range(len(message)):
@@ -118,6 +121,7 @@ class Agent(pygame.sprite.Sprite):
                     self.reconsider   = True
                     self.layout[i][j] = layout[i][j]
 
+
     def moveRandom(self):
         row  = [-1, 0, 0, 1]
         col  = [0, -1, 1, 0]
@@ -130,6 +134,7 @@ class Agent(pygame.sprite.Sprite):
             if (not isWall(self.layout,x,y) and not isFire(self.layout,x,y) and not isSmoke(self.layout,x,y) and not isExit(self.layout,x,y) and not isAlarm(self.layout,x,y)):
                 return [[x, y]]
         return [[self.x, self.y]]
+
 
     def plan_(self):
         if (not self.danger):     #anda aleatoriamente por aí
@@ -161,6 +166,7 @@ class Agent(pygame.sprite.Sprite):
                 return [[x,y]]
         return [[self.x,self.y]] #desisti
     
+
     def BFS(self):
         source  = [self.x, self.y]
         dests   = self.exits
@@ -311,6 +317,7 @@ class Agent(pygame.sprite.Sprite):
 
         path.reverse()
         return path
+
 
     #maneira mais elegante de recuperar o path. a chamada é [source] + recoverPath(my_pos, exit, parents)
     def recoverPath(self, source, target, parents):
