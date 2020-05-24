@@ -88,7 +88,7 @@ def addSmoke(i,j):
 
 def propagateFire(layout):
 	spread    = [True, False] #either it spreads or not
-	propagate = [ALFA,  1-ALFA]
+	propagate = [FIRE,  1-FIRE]
 	smoke     = [SMOKE, 1-SMOKE]
 	row       = [-1, 0, 0, 1]
 	col       = [0, -1, 1, 0]
