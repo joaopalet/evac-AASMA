@@ -215,7 +215,7 @@ if __name__ == "__main__":
 	SCREEN.fill(BLACK)
 
 	# Create agents
-	layout = getLayout()
+	layout = getLayout(None)
 	exits  = getExitsPos(layout)
 
 	all_sprites = pygame.sprite.Group()

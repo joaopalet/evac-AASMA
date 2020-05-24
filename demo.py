@@ -85,7 +85,7 @@ def addSmoke(i,j):
 
 def propagateFire(layout):
 	spread    = [True, False] #either it spreads or not
-	propagate = [ALFA,  1-ALFA]
+	propagate = [FIRE,  1-FIRE]
 	smoke     = [SMOKE, 1-SMOKE]
 	row       = [-1, 0, 0, 1]
 	col       = [0, -1, 1, 0]
@@ -95,11 +95,14 @@ def propagateFire(layout):
 		i = random.randrange(0, 4)
 		x = fire.x + row[i]
 		y = fire.y + col[i]
+
+		if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
 		propagate_ = propagate
 		if (isSmoke(layout,x, y)):
 			propagate_[0] += (1-propagate_[1])/2
 			propagate_[1] = 1 - propagate_[0]
-		if (choices(spread, propagate_)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isExit(layout,x, y)):
+		if (choices(spread, propagate_)[0] and not isWall(layout,x,y) and not isFire(layout,x,y) and not isExit(layout,x,y)):
 			for smoke in all_smokes:
 				if smoke.x == x and smoke.y == y:
 					all_smokes.remove(smoke)
@@ -121,35 +124,48 @@ def propagateSmoke(layout):
 	
 	#propagar com base nos fogos
 	for fire in all_fires:
-		x = fire.x
-		y = fire.y
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[0], y+col[0]) and not isFire(layout,x+row[0], y+col[0]) and not isSmoke(layout,x+row[0], y+col[0]) and not isExit(layout,x+row[0], y+col[0])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[1], y+col[1]) and not isFire(layout,x+row[1], y+col[1]) and not isSmoke(layout,x+row[1], y+col[1]) and not isExit(layout,x+row[1], y+col[1])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[2], y+col[2]) and not isFire(layout,x+row[2], y+col[2]) and not isSmoke(layout,x+row[2], y+col[2]) and not isExit(layout,x+row[2], y+col[2])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[3], y+col[3]) and not isFire(layout,x+row[3], y+col[3]) and not isSmoke(layout,x+row[3], y+col[3]) and not isExit(layout,x+row[3], y+col[3])):
-			addSmoke(x,y)
+
+		for i in range(len(row)):
+
+			x = fire.x + row[i]
+			y = fire.y + col[i]
+
+			if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+
 
 	for smoke in all_smokes:
-		x = smoke.x
-		y = smoke.y
-		go = choices(spread, smk)[0]
-		if (go and not isWall(layout,x+row[0], y+col[0]) and not isFire(layout,x+row[0], y+col[0]) and not isSmoke(layout,x+row[0], y+col[0]) and not isExit(layout,x+row[0], y+col[0])):
-			addSmoke(x+row[0], y+col[0])
-		if (go and not isWall(layout,x+row[1], y+col[1]) and not isFire(layout,x+row[1], y+col[1]) and not isSmoke(layout,x+row[1], y+col[1]) and not isExit(layout,x+row[1], y+col[1])):
-			addSmoke(x+row[1], y+col[1])
-		if (go and not isWall(layout,x+row[2], y+col[2]) and not isFire(layout,x+row[2], y+col[2]) and not isSmoke(layout,x+row[2], y+col[2]) and not isExit(layout,x+row[2], y+col[2])):
-			addSmoke(x+row[2], y+col[2])
-		if (go and not isWall(layout,x+row[3], y+col[3]) and not isFire(layout,x+row[3], y+col[3]) and not isSmoke(layout,x+row[3], y+col[3]) and not isExit(layout,x+row[3], y+col[3])):
-			addSmoke(x+row[3], y+col[3])
+
+		for i in range(len(row)):
+
+			x = smoke.x + row[i]
+			y = smoke.y + col[i]
+
+			if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
+			go = choices(spread, smk)[0]
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
 
 	return layout
 
 
 def assertInRange(speaker, listener):
-	return abs(speaker.x - listener.x)<=VOLUME and abs(speaker.y - listener.y)<=VOLUME
+	return abs(speaker.x - listener.x)<=speaker.getVolume() and abs(speaker.y - listener.y)<=speaker.getVolume()
 
 def communicate(speaker):
 	if (not speaker.isCommunicative()):
@@ -159,14 +175,14 @@ def communicate(speaker):
 		if assertInRange(speaker, listener):
 			listener.receiveMessage(speaker.getLayout())
 
-
-def mainCycle(com, alar, num_ag, perc, rang):     #communicate, there's alarm, num_agents, percentage of risk_taking agents
+#ARGUMENTS: there's communication , there's alarm, num_agents, percentage of risk_taking agents,  percentage of communicative agents, vision range
+def mainCycle(lay, com, alar, num_ag, perc_R, perc_C, rang, vol):
 	global SCREEN, CLOCK, layout, all_sprites, all_agents, all_walls, all_fires, all_smokes, all_alarms, exits, soundAlarm, run, pause, agents_dead, agents_saved, fire_alarm
 
 	soundAlarm = False
 
 	# Create agents
-	layout = getLayout()
+	layout = getLayout(lay)
 	exits  = getExitsPos(layout)
 
 	all_sprites = pygame.sprite.Group()
@@ -178,13 +194,34 @@ def mainCycle(com, alar, num_ag, perc, rang):     #communicate, there's alarm, n
 	createWalls()
 	createAlarm()
 
-	num_riskT = (perc/100)*num_ag
+	num_riskT = int((perc_R/100)*num_ag)
+	num_comm  = int((perc_C/100)*num_ag)
+	c = 0
 	for i in range(num_ag):
-		if(i < num_riskT): 
-			player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 1, True)
-		else: 
-			player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 0, True)
+		if(i < num_riskT and i%2==0):
+			if(c < num_comm):   
+				#print('risk taking and communicative')
+				player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 1, True)
+				c += 1
+			else: 
+				#print('risk taking and non communicative')
+				player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 1, False)
+		elif(i < num_riskT and (i%2!=0 or num_comm == 0)):
+			#print('risk taking and non communicative')  
+			player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 1, False)
+		elif(i >= num_riskT and i%2==0):
+			if(c < num_comm):
+				#print('not risk taking and communicative') 
+				player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 0, True)
+				c += 1
+			else: 
+				#print('not risk taking and not communicative')
+				player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 0, False)
+		elif(i >= num_riskT and (i%2!=0 or num_comm == 0)):
+			#print('not risk taking and not communicative')
+			player = Agent(i+1, deepcopy(layout), exits, HEALTH_POINTS, 0, False)
 		player.setRange(rang)
+		player.setVolume(vol)
 		all_sprites.add(player)
 		all_agents.add(player)
 
@@ -204,7 +241,6 @@ def mainCycle(com, alar, num_ag, perc, rang):     #communicate, there's alarm, n
 			break
 
 		if not pause:
-			
 			for agent in all_agents:
 				agent.percept(layout)
 				agent.checkAlarm(soundAlarm)
@@ -236,240 +272,143 @@ if __name__ == "__main__":
     numIt = 500       #numero iteracoes
     com   = True      #comunicacao
     alar  = True      #alarme
-    rang  = RANGE
+    rang  = RANGE     #vision range
     numAg = 50
+    vol   = VOLUME    #volume range
 
-    # CONFIG 1 - COM COMUNICACAO TODOS OS AGENTES RISK TAKING
-    print('CONFIG 1 - COM COMUNICACAO TODOS OS AGENTES RISK TAKING')
+    x_ = [None]*3
+    y_ = [None]*3
+
+    # BASELINE - 50 agentes, 50% risk taking, 50% communicative, RANGE = 5, VOLUME = 5, Mapa com 2 saidas
+    print('BASELINE')
     res1 = 0
     for i in range(numIt):
-        print('i: ', i)
-        res1 += mainCycle(com, alar, numAg, 100, rang)
-        print('res: ', res1)
+        res1 += mainCycle(None, com, alar, numAg, 50, 50, rang, vol)
     final1 = (res1/numIt)*100
-    f.write("% saved agents CONFIG 1: %f\n\n" % final1)
+    f.write("BASELINE: %f\n\n" % final1)
+    x_[1] = 2
+    y_[1] = final1
 
-    # CONFIG 2 - SEM COMUNICACAO TODOS OS AGENTES RISK TAKING
-    print('CONFIG 2 - SEM COMUNICACAO TODOS OS AGENTES RISK TAKING')
-    res2 = 0
+    # MAPA COM 1 SAIDA
+    print('MAPA 1 SAIDA')
+    res = 0
     for i in range(numIt):
-        print('i: ', i)
-        res2 += mainCycle(not com, alar, numAg, 100, rang)
-        print('res: ', res2)
-    final2 = (res2/numIt)*100
-    f.write("% saved agents CONFIG 2: %f\n\n" % final2)
+        res += mainCycle('supermarket1.txt', com, alar, numAg, 50, 50, rang, vol)
+    final2 = (res/numIt)*100
+    f.write("MAPA COM 1 SAIDA: %f\n\n" % final2)
+    x_[0] = 1
+    y_[0] = final2
 
-    # CONFIG 3 - SEM COMUNICACAO TODOS OS AGENTES RISK AVERSE
-    print('CONFIG 3 - SEM COMUNICACAO TODOS OS AGENTES RISK AVERSE')
-    res3 = 0
+    # MAPA COM 3 SAIDAS
+    print('MAPA 3 SAIDA')
+    res = 0
     for i in range(numIt):
-        print('i: ', i)
-        res3 += mainCycle(not com, alar, numAg, 0, rang)
-        print('res: ', res3)
-    final3 = (res3/numIt)*100
-    f.write("% saved agents CONFIG 3: %f\n\n" % final3)
+        res += mainCycle('supermarket3.txt', com, alar, numAg, 50, 50, rang, vol)
+    final3 = (res/numIt)*100
+    f.write("MAPA COM 3 SAIDAS: %f\n\n" % final3)
+    x_[2] = 3
+    y_[2] = final3
 
-    # CONFIG 4 - COM COMUNICACAO TODOS OS AGENTES RISK AVERSE
-    print('CONFIG 4 - COM COMUNICACAO TODOS OS AGENTES RISK AVERSE')
-    res4 = 0
-    for i in range(numIt):
-        print('i: ', i)
-        res4 += mainCycle(com, alar, numAg, 0, rang)
-        print('res: ', res4)
-    final4 = (res4/numIt)*100
-    f.write("% saved agents CONFIG 4: %f\n\n" % final4)
+    plt.figure()
+    plt.ylabel("% saved agents")
+    plt.xlabel("number of exits")
+    plt.plot(x_,y_)
+    plt.savefig('NºEXITS.png')
 
-    f.close()
 
-    # CONFIG 5 - VARIAR Nº AGENTES [10-100], COM COMUNICACAO E COM ALARME
-    print('CONFIG 5 - VARIAR Nº AGENTES [10-100], COM COMUNICACAO E COM ALARME')
+    # VARIAR Nº AGENTES
     x = []
     y = []
     for j in range(10, 110, 10):
-        res5 = 0
+        res2 = 0
         x.append(j)
         for i in range(numIt):
-            res5 += mainCycle(com, alar, j, 100, rang)
-        final = (res5/numIt)*100
-        y.append(final)
+            res2 += mainCycle(None, com, alar, j, 50, 50, rang, vol)
+        final2 = (res2/numIt)*100
+        y.append(final2)
     
     plt.figure()
-    #plt.title()
     plt.ylabel("% saved agents")
     plt.xlabel("number of agents")
     plt.plot(x,y)
-    plt.savefig('CONFIG_5.png')
+    plt.savefig('NºAGENTES.png')
 
-    # CONFIG 6 - VARIAR Nº AGENTES [10-100], COM COMUNICACAO E SEM ALARME
-    print('CONFIG 6 - VARIAR Nº AGENTES [10-100], COM COMUNICACAO E SEM ALARME')
-    x = []
-    y = []
-    for j in range(10, 110, 10):
-        res5 = 0
-        x.append(j)
-        for i in range(numIt):
-            res5 += mainCycle(com, not alar, j, 100, rang)
-        final = (res5/numIt)*100
-        y.append(final)
     
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("number of agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_6.png')
-
-    # CONFIG 7 - VARIAR Nº AGENTES [10-100], SEM COMUNICACAO E COM ALARME
-    print('CONFIG 7 - VARIAR Nº AGENTES [10-100], SEM COMUNICACAO E COM ALARME')
+    # VARIAR % DE AGENTES RISK_TAKING
     x = []
     y = []
-    for j in range(10, 110, 10):
-        res5 = 0
-        x.append(j)
-        for i in range(numIt):
-            res5 += mainCycle(not com, alar, j, 100, rang)
-        final = (res5/numIt)*100
-        y.append(final)
-    
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("number of agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_7.png')
-
-    # CONFIG 8 - VARIAR Nº AGENTES [10-100], SEM COMUNICACAO E SEM ALARME
-    print('CONFIG 8 - VARIAR Nº AGENTES [10-100], SEM COMUNICACAO E SEM ALARME')
-    x = []
-    y = []
-    for j in range(10, 110, 10):
+    for j in range(0, 110, 10):     # j -> % of risk_taking agents
         res = 0
         x.append(j)
         for i in range(numIt):
-            res += mainCycle(not com, not alar, j, 100, rang)
+            res += mainCycle(None, com, alar, numAg, j, 50, rang, vol)
         final = (res/numIt)*100
         y.append(final)
-    
+
     plt.figure()
-    #plt.title()
     plt.ylabel("% saved agents")
-    plt.xlabel("number of agents")
+    plt.xlabel("% of risk taking agents")
     plt.plot(x,y)
-    plt.savefig('CONFIG_8.png')
+    plt.savefig('%RISK_TAKING.png')
 
 
-    # CONFIG 9 - VARIAR VARIAR RANGE [1-10] COM COMUNICACAO
-    print('CONFIG 9 - VARIAR VARIAR RANGE [1-10] COM COMUNICACAO')
+    # VARIAR % DE COMMUNICATIVE AGENTS
+    x = []
+    y = []
+    for j in range(0, 110, 10):     # j -> % of communicative agents
+        res = 0
+        x.append(j)
+        for i in range(numIt):
+            res += mainCycle(None, com,alar, numAg, 50, j, rang, vol)
+        final = (res/numIt)*100
+        y.append(final)
+
+    plt.figure()
+    plt.ylabel("% saved agents")
+    plt.xlabel("% of communicative agents")
+    plt.plot(x,y)
+    plt.savefig('%COMMUNICATIVE.png')
+
+
+    # VARIAR VISION RANGE [1-10]
     x = []
     y = []
     for j in range(1, 11):
         res = 0
         x.append(j)
         for i in range(numIt):
-            res += mainCycle(com, not alar, numAg, 100, j)
+            res += mainCycle(None, com, alar, numAg, 50, 50, j, vol)
         final = (res/numIt)*100
         y.append(final)
     
     plt.figure()
-    #plt.title()
     plt.ylabel("% saved agents")
-    plt.xlabel("agent RANGE")
+    plt.xlabel("Evacuee Vision RANGE")
     plt.plot(x,y)
-    plt.savefig('CONFIG_9.png')
+    plt.savefig('VISION_RANGE.png')
 
-    # CONFIG 10 - VARIAR VARIAR RANGE [1-10] SEM COMUNICACAO
-    print('CONFIG 10 - VARIAR VARIAR RANGE [1-10] SEM COMUNICACAO')
+
+    # VARIAR VOLUME RANGE [1-10]
     x = []
     y = []
     for j in range(1, 11):
         res = 0
         x.append(j)
         for i in range(numIt):
-            res += mainCycle(not com, not alar, numAg, 100, j)
+            res += mainCycle(None, com, alar, numAg, 50, 50, rang, j)
         final = (res/numIt)*100
         y.append(final)
     
     plt.figure()
-    #plt.title()
     plt.ylabel("% saved agents")
-    plt.xlabel("agent RANGE")
+    plt.xlabel("Evacuee Volume RANGE")
     plt.plot(x,y)
-    plt.savefig('CONFIG_10.png')
+    plt.savefig('VOLUME_RANGE.png')
 
 
-    # CONFIG 13 - VARIAR % DE AGENTES RISK_TAKING SEM COMUNICACAO E COM ALARME
-    print('CONFIG 13 - VARIAR % DE AGENTES RISK_TAKING SEM COMUNICACAO E COM ALARME')
-    x = []
-    y = []
-    for j in range(0, 110, 10):     # j -> % of risk_taking agents
-        res = 0
-        x.append(j)
-        for i in range(numIt):
-            res += mainCycle(not com, alar, numAg, j, rang)
-        final = (res/numIt)*100
-        y.append(final)
-
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of risk taking agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_13.png')
-
-
-    # CONFIG 14 - VARIAR % DE AGENTES RISK_TAKING COM COMUNICACAO E COM ALARME
-    print('CONFIG 14 - VARIAR % DE AGENTES RISK_TAKING COM COMUNICACAO E COM ALARME')
-    x = []
-    y = []
-    for j in range(0, 110, 10):     # j -> % of risk_taking agents
-        res = 0
-        x.append(j)
-        for i in range(numIt):
-            res += mainCycle(com, alar, numAg, j, rang)
-        final = (res/numIt)*100
-        y.append(final)
-
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of risk taking agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_14.png')
-
-    # CONFIG 15 - VARIAR % DE AGENTES RISK_TAKING SEM COMUNICACAO E SEM ALARME
-    print('CONFIG 15 - VARIAR % DE AGENTES RISK_TAKING SEM COMUNICACAO E SEM ALARME')
-    x = []
-    y = []
-    for j in range(0, 110, 10):     # j -> % of risk_taking agents
-        res = 0
-        x.append(j)
-        for i in range(numIt):
-            res += mainCycle(not com, not alar, numAg, j, rang)
-        final = (res/numIt)*100
-        y.append(final)
-
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of risk taking agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_15.png')
-
-    # CONFIG 16 - VARIAR % DE AGENTES RISK_TAKING COM COMUNICACAO E SEM ALARME
-    print('CONFIG 16 - VARIAR % DE AGENTES RISK_TAKING COM COMUNICACAO E SEM ALARME')
-    x = []
-    y = []
-    for j in range(0, 110, 10):     # j -> % of risk_taking agents
-        res = 0
-        x.append(j)
-        for i in range(numIt):
-            res += mainCycle(com, not alar, numAg, j, rang)
-        final = (res/numIt)*100
-        y.append(final)
-
-    plt.figure()
-    #plt.title()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of risk taking agents")
-    plt.plot(x,y)
-    plt.savefig('CONFIG_16.png')
+    # SEM ALARME
+    res = 0
+    for i in range(numIt):
+        res += mainCycle(None, com, not alar, numAg, 50, 50, rang, vol)
+    final = (res/numIt)*100
+    f.write("SEM ALARME: %f\n\n" % final)

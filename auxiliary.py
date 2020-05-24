@@ -27,11 +27,13 @@ def validPropagation(layout, i, j):
 
 # Auxiliar
 
-def getLayout():
-    f = open('supermarket.txt', 'r').read()
-    p = []
-    p = [item.split() for item in f.split('\n')[:-1]]
-    return p
+def getLayout(file):
+    #f = open('supermarket.txt', 'r').read()
+	if(file is None): f = open('supermarket.txt', 'r').read()
+	else: f = open(file, 'r').read()
+	p = []
+	p = [item.split() for item in f.split('\n')[:-1]]
+	return p
 
 def getExitsPos(layout):
 	return [ [index, row.index('E')] for index, row in enumerate(layout) if 'E' in row]

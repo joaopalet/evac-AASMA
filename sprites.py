@@ -29,6 +29,7 @@ class Agent(pygame.sprite.Sprite):
         self.reconsider   = False
         self.dead         = False
         self.range        = RANGE
+        self.volume       = VOLUME
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
@@ -54,6 +55,9 @@ class Agent(pygame.sprite.Sprite):
     
     def getHealth(self):
         return self.health
+
+    def getVolume(self):
+        return self.volume
     
     def setHealth(self, new_health):
         self.health = new_health
@@ -63,6 +67,9 @@ class Agent(pygame.sprite.Sprite):
     
     def setRange(self, new_range):
         self.range = new_range
+    
+    def setVolume(self, new_volume):
+        self.volume =  new_volume
         
     def move(self, dx=0, dy=0):
         self.x += dx
