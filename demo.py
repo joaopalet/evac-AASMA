@@ -269,7 +269,7 @@ if __name__ == "__main__":
     
     f = open("res.txt", "a")
 
-    numIt = 500       #numero iteracoes
+    numIt = 100       #numero iteracoes
     com   = True      #comunicacao
     alar  = True      #alarme
     rang  = RANGE     #vision range
@@ -310,8 +310,8 @@ if __name__ == "__main__":
     y_[2] = final3
 
     plt.figure()
-    plt.ylabel("% saved agents")
-    plt.xlabel("number of exits")
+    plt.ylabel("Saved Evacuees (%)")
+    plt.xlabel("Number of Exits")
     plt.plot(x_,y_)
     plt.savefig('NºEXITS.png')
 
@@ -328,8 +328,8 @@ if __name__ == "__main__":
         y.append(final2)
     
     plt.figure()
-    plt.ylabel("% saved agents")
-    plt.xlabel("number of agents")
+    plt.ylabel("Saved Evacuees (%)")
+    plt.xlabel("Number of Evacuees")
     plt.plot(x,y)
     plt.savefig('NºAGENTES.png')
 
@@ -337,7 +337,7 @@ if __name__ == "__main__":
     # VARIAR % DE AGENTES RISK_TAKING
     x = []
     y = []
-    for j in range(0, 110, 10):     # j -> % of risk_taking agents
+    for j in range(0, 110, 20):     # j -> % of risk_taking agents
         res = 0
         x.append(j)
         for i in range(numIt):
@@ -346,8 +346,8 @@ if __name__ == "__main__":
         y.append(final)
 
     plt.figure()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of risk taking agents")
+    plt.ylabel("Saved Evacuees (%)")
+    plt.xlabel("Risk taking Evacuees (%)")
     plt.plot(x,y)
     plt.savefig('%RISK_TAKING.png')
 
@@ -355,7 +355,7 @@ if __name__ == "__main__":
     # VARIAR % DE COMMUNICATIVE AGENTS
     x = []
     y = []
-    for j in range(0, 110, 10):     # j -> % of communicative agents
+    for j in range(0, 110, 20):     # j -> % of communicative agents
         res = 0
         x.append(j)
         for i in range(numIt):
@@ -364,8 +364,8 @@ if __name__ == "__main__":
         y.append(final)
 
     plt.figure()
-    plt.ylabel("% saved agents")
-    plt.xlabel("% of communicative agents")
+    plt.ylabel("Saved Evacuees (%)")
+    plt.xlabel("Communicative Evacuees (%)")
     plt.plot(x,y)
     plt.savefig('%COMMUNICATIVE.png')
 
@@ -382,7 +382,7 @@ if __name__ == "__main__":
         y.append(final)
     
     plt.figure()
-    plt.ylabel("% saved agents")
+    plt.ylabel("Saved Evacuees (%)")
     plt.xlabel("Evacuee Vision RANGE")
     plt.plot(x,y)
     plt.savefig('VISION_RANGE.png')
@@ -400,7 +400,7 @@ if __name__ == "__main__":
         y.append(final)
     
     plt.figure()
-    plt.ylabel("% saved agents")
+    plt.ylabel("Saved Evacuees (%)")
     plt.xlabel("Evacuee Volume RANGE")
     plt.plot(x,y)
     plt.savefig('VOLUME_RANGE.png')
