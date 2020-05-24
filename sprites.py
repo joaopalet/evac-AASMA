@@ -142,9 +142,9 @@ class Agent(pygame.sprite.Sprite):
 
 
     def plan_(self):
-        if (not self.danger):     #anda aleatoriamente por aí
+        if (not self.danger):     #anda aleatoriamente por ai
             self.plan = self.moveRandom()
-        elif (self.reconsider):   #update nos beliefs dele -> fogo or fumo -> shortest paths
+        elif (self.reconsider):   #update nos beliefs dele -> fogo ou fumo -> "shortest" paths
             self.plan = self.Dijkstra()
 
 
@@ -354,7 +354,8 @@ class Alarm(pygame.sprite.Sprite):
 
         for i in range(x0, x1+1):
             for j in range(y0, y1+1):
-                if(isSmoke(layout, i, j) or isFire(layout, i, j)): return True
+                if(isSmoke(layout, i, j) or isFire(layout, i, j)):
+                    return True
         return False
     
     def FireAlarm(self):

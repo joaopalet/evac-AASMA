@@ -98,11 +98,14 @@ def propagateFire(layout):
 		i = random.randrange(0, 4)
 		x = fire.x + row[i]
 		y = fire.y + col[i]
+
+		if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
 		propagate_ = propagate
 		if (isSmoke(layout,x, y)):
 			propagate_[0] += (1-propagate_[1])/2
 			propagate_[1] = 1 - propagate_[0]
-		if (choices(spread, propagate_)[0] and not isWall(layout,x, y) and not isFire(layout,x, y) and not isExit(layout,x, y)):
+		if (choices(spread, propagate_)[0] and not isWall(layout,x,y) and not isFire(layout,x,y) and not isExit(layout,x,y)):
 			for smoke in all_smokes:
 				if smoke.x == x and smoke.y == y:
 					all_smokes.remove(smoke)
@@ -124,29 +127,42 @@ def propagateSmoke(layout):
 	
 	#propagar com base nos fogos
 	for fire in all_fires:
-		x = fire.x
-		y = fire.y
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[0], y+col[0]) and not isFire(layout,x+row[0], y+col[0]) and not isSmoke(layout,x+row[0], y+col[0]) and not isExit(layout,x+row[0], y+col[0])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[1], y+col[1]) and not isFire(layout,x+row[1], y+col[1]) and not isSmoke(layout,x+row[1], y+col[1]) and not isExit(layout,x+row[1], y+col[1])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[2], y+col[2]) and not isFire(layout,x+row[2], y+col[2]) and not isSmoke(layout,x+row[2], y+col[2]) and not isExit(layout,x+row[2], y+col[2])):
-			addSmoke(x,y)
-		if (choices(spread, smk)[0] and not isWall(layout,x+row[3], y+col[3]) and not isFire(layout,x+row[3], y+col[3]) and not isSmoke(layout,x+row[3], y+col[3]) and not isExit(layout,x+row[3], y+col[3])):
-			addSmoke(x,y)
+
+		for i in range(len(row)):
+
+			x = fire.x + row[i]
+			y = fire.y + col[i]
+
+			if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+			if (choices(spread, smk)[0] and validPropagation(layout,x,y)):
+				addSmoke(x,y)
+
 
 	for smoke in all_smokes:
-		x = smoke.x
-		y = smoke.y
-		go = choices(spread, smk)[0]
-		if (go and not isWall(layout,x+row[0], y+col[0]) and not isFire(layout,x+row[0], y+col[0]) and not isSmoke(layout,x+row[0], y+col[0]) and not isExit(layout,x+row[0], y+col[0])):
-			addSmoke(x+row[0], y+col[0])
-		if (go and not isWall(layout,x+row[1], y+col[1]) and not isFire(layout,x+row[1], y+col[1]) and not isSmoke(layout,x+row[1], y+col[1]) and not isExit(layout,x+row[1], y+col[1])):
-			addSmoke(x+row[1], y+col[1])
-		if (go and not isWall(layout,x+row[2], y+col[2]) and not isFire(layout,x+row[2], y+col[2]) and not isSmoke(layout,x+row[2], y+col[2]) and not isExit(layout,x+row[2], y+col[2])):
-			addSmoke(x+row[2], y+col[2])
-		if (go and not isWall(layout,x+row[3], y+col[3]) and not isFire(layout,x+row[3], y+col[3]) and not isSmoke(layout,x+row[3], y+col[3]) and not isExit(layout,x+row[3], y+col[3])):
-			addSmoke(x+row[3], y+col[3])
+
+		for i in range(len(row)):
+
+			x = smoke.x + row[i]
+			y = smoke.y + col[i]
+
+			if (x > len(layout)-1 or y > len(layout[0])-1): continue
+
+			go = choices(spread, smk)[0]
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
+			if (go and validPropagation(layout,x,y)):
+				addSmoke(x, y)
 
 	return layout
 
