@@ -28,6 +28,7 @@ class Agent(pygame.sprite.Sprite):
         self.danger       = False
         self.reconsider   = False
         self.dead         = False
+        self.range        = RANGE
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))
@@ -59,6 +60,9 @@ class Agent(pygame.sprite.Sprite):
 
     def setColor(self, color):
         self.image.fill(color)
+    
+    def setRange(self, new_range):
+        self.range = new_range
         
     def move(self, dx=0, dy=0):
         self.x += dx
@@ -106,10 +110,10 @@ class Agent(pygame.sprite.Sprite):
                     self.layout[i][j] = message[i][j]
 
     def percept(self, layout):
-        x0 = self.x-RANGE
-        y0 = self.y-RANGE 
-        x1 = self.x+RANGE
-        y1 = self.y+RANGE
+        x0 = self.x-self.range
+        y0 = self.y-self.range
+        x1 = self.x+self.range
+        y1 = self.y+self.range
         self.reconsider = False
         if (x0 < 0):
             x0 = 0
