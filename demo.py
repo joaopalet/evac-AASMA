@@ -284,10 +284,10 @@ if __name__ == "__main__":
     res1 = 0
     for i in range(numIt):
         res1 += mainCycle(None, com, alar, numAg, 50, 50, rang, vol)
-    final1 = (res1/numIt)*100
-    f.write("BASELINE: %f\n\n" % final1)
+    finalB = (res1/numIt)*100
+    f.write("BASELINE: %f\n\n" % finalB)
     x_[1] = 2
-    y_[1] = final1
+    y_[1] = finalB
 
     # MAPA COM 1 SAIDA
     print('MAPA 1 SAIDA')
@@ -412,3 +412,9 @@ if __name__ == "__main__":
         res += mainCycle(None, com, not alar, numAg, 50, 50, rang, vol)
     final = (res/numIt)*100
     f.write("SEM ALARME: %f\n\n" % final)
+
+    fig, ax = plt.subplots()
+    ax.plot(finalB, 'b-', label='Baseline')
+    ax.plot(final, 'r-', label='Without alarm')
+    ax.legend(loc='upper right', fontsize='large')
+    plt.savefig('ALARM')
