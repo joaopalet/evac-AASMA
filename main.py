@@ -125,7 +125,6 @@ def propagateSmoke(layout):
 	row    = [-1, 0, 0, 1]
 	col    = [0, -1, 1, 0]
 	
-	#propagar com base nos fogos
 	for fire in all_fires:
 
 		for i in range(len(row)):
@@ -261,7 +260,7 @@ if __name__ == "__main__":
 			pygame.mixer.unpause()
 
 
-		if len(agents_saved) + len(agents_dead) == NUM_AGENTS: #or maybe if(len(all_fires))==WIDTH*HEIGHT-walls-alarm-...
+		if len(agents_saved) + len(agents_dead) == NUM_AGENTS:
 			break
 
 		if not pause:
@@ -283,6 +282,7 @@ if __name__ == "__main__":
 			draw()
 
 		i+=1
+
 	pygame.mixer.pause()
 	time.sleep(2)
 	pygame.quit()

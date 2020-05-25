@@ -106,8 +106,6 @@ class Agent(pygame.sprite.Sprite):
             self.danger     = True
             self.reconsider = True
     
-
-    #O agente so pode ficar em perigo de duas maneiras: ou alguem lhe comunica que ha fogo/fumo ou ele encontra fogo/fumo 
     def receiveMessage(self, message):
         for i in range(len(message)):
             for j in range(len(message[i])):
@@ -153,19 +151,18 @@ class Agent(pygame.sprite.Sprite):
 
 
     def plan_(self):
-        if (not self.danger):     #anda aleatoriamente por ai
+        if (not self.danger):     #walk randomly
             self.plan = self.moveRandom()
-        elif (self.reconsider):   #update nos beliefs dele -> fogo ou fumo -> "shortest" paths
+        elif (self.reconsider):
             self.plan = self.Dijkstra()
 
 
     #Our reactive agent logic
     def panic(self):
-        #procura uma casa adjacente livre. se nao existir uma, procura uma casa com fumo. se nao existir, desiste :(
+        #search for a free adjacent cell. if there's none, search for a cell with smoke. if there's none, give up :(
         row = [-1, 0, 0, 1]
         col = [0, -1, 1, 0]
 
-        # shuffle visiting order of the neighbours
         combined = list(zip(row, col))
         random.shuffle(combined)
         row, col = zip(*combined)
@@ -207,7 +204,6 @@ class Agent(pygame.sprite.Sprite):
                 my_dest = cur
                 break
 
-            # shuffle visiting order of the neighbours
             combined = list(zip(row, col))
             random.shuffle(combined)
             row, col = zip(*combined)
