@@ -28,8 +28,8 @@ class Agent(pygame.sprite.Sprite):
         self.danger       = False
         self.reconsider   = False
         self.dead         = False
-        self.range        = RANGE
-        self.volume       = VOLUME
+        self.range        = VIS_RANGE
+        self.volume       = VOL_RANGE
 
         self.x = random.randrange(0, len(self.layout))
         self.y = random.randrange(0, len(self.layout[0]))

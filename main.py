@@ -191,7 +191,7 @@ def drawText(surf, text, size, x, y):
 	surf.blit(text_surface, text_rect)
 
 def assertInRange(speaker, listener):
-	return abs(speaker.x - listener.x)<=VOLUME and abs(speaker.y - listener.y)<=VOLUME
+	return abs(speaker.x - listener.x)<=VOL_RANGE and abs(speaker.y - listener.y)<=VOL_RANGE
 
 def communicate(speaker):
 	if (not speaker.isCommunicative()):
