@@ -4,7 +4,7 @@ To run the project, simply run ```$python main.py``` inside the root directory.
 Make sure you have python and pygame installed.
 Pygame wiki: https://www.pygame.org/wiki/GettingStarted
 
-To play with the control parameters just change th values in settings.py.
+To play with the control parameters just change their values in settings.py.
 
 It's run the simulation with different building layouts change the name of the file being opened to read in auxiliary.py.
 
